@@ -1,38 +1,58 @@
 # WMS - 仓库管理系统
 
+[![Release](https://img.shields.io/github/v/release/Dreay-MoLing/wms)](https://github.com/Dreay-MoLing/wms/releases/latest)
+
 基于 Flutter 的仓库管理移动端应用。
 
 ## 小白体验版（无需搭建环境）
 
-如果你不想安装任何开发工具，只想在浏览器中体验效果，可以直接使用预编译的演示版：
+如果你不想安装任何开发工具，可以直接下载预编译的演示版可执行文件。
 
-### 下载与运行
+### 下载
 
-1. 从 `dist/WMS-Demo-v1.0/` 目录获取发布包
-2. 发布包内含两个文件：
+从 [GitHub Releases](https://github.com/Dreay-MoLing/wms/releases) 页面下载对应系统的压缩包：
 
-   ```
-   WMS-Demo-v1.0/
-   ├── wms-demo        # 可执行文件（双击运行）
-   └── web/            # 网页资源（勿删）
-   ```
+| 系统 | 下载文件 |
+|------|---------|
+| Linux | `wms-demo-<版本>-linux.tar.gz` |
+| macOS | `wms-demo-<版本>-macos.tar.gz` |
+| Windows | `wms-demo-<版本>-win.zip` |
 
-3. **双击 `wms-demo`** 即可启动，终端窗口打开后会自动在浏览器中打开演示页面
-4. 关闭终端窗口即可停止服务
-
-> **注意：** `wms-demo` 和 `web/` 文件夹必须在同一目录下，缺一不可。
->
-> **Windows 用户：** 需要安装 [Node.js](https://nodejs.org/) 后，在终端中运行 `node server.js` 启动（Windows 版后续可编译）。
-
-### 自行构建演示版
-
-如需重新构建演示版，确保已安装 Flutter 和 Node.js，然后运行：
+也可通过命令行一键下载最新版：
 
 ```bash
-# 一键构建
+# Linux / macOS
+curl -L https://github.com/Dreay-MoLing/wms/releases/latest/download/wms-demo-<version>-linux.tar.gz | tar xz
+
+# Windows (PowerShell)
+Invoke-WebRequest -Uri https://github.com/Dreay-MoLing/wms/releases/latest/download/wms-demo-<version>-win.zip -OutFile wms-demo.zip
+```
+
+### 运行
+
+1. 解压压缩包，得到以下结构：
+   ```
+   wms-demo-<版本>/
+   ├── wms-demo          # 可执行文件（双击运行）
+   └── web/              # 网页资源（勿删）
+   ```
+2. **双击 `wms-demo`** 即可启动，终端窗口打开后会自动在浏览器中打开演示页面
+3. 关闭终端窗口即可停止服务
+
+> **注意：** `wms-demo` 和 `web/` 文件夹必须在同一目录下，缺一不可。
+
+### 自行构建
+
+如需从源码构建演示版，确保已安装 Flutter 和 Node.js：
+
+```bash
+# 构建指定版本（默认 1.0.0）
 bash tools/build.sh
 
-# 构建产物在 dist/WMS-Demo-v1.0/
+# 构建 1.1.0 版本
+bash tools/build.sh 1.1.0
+
+# 构建产物在 dist/WMS-Demo-v<版本>/
 ```
 
 ---
@@ -95,18 +115,22 @@ flutter build web --release # 构建 Web 发布版
 
 ```
 wms/
-├── lib/                   # Dart 源代码
-│   ├── main.dart          # 应用入口
-│   ├── models/            # 数据模型
-│   ├── pages/             # 页面
-│   ├── providers/         # Riverpod 状态管理
-│   └── widgets/           # 可复用组件
-├── tools/                 # 构建工具
-│   ├── build.sh           # 一键构建脚本
-│   ├── server.js          # 演示版 HTTP 服务
-│   └── package.json       # Node.js 配置
-├── dist/                  # 构建输出目录
-└── pubspec.yaml           # Flutter 项目配置
+├── .github/
+│   └── workflows/
+│       └── release.yml      # CI/CD: 自动构建并发布到 GitHub Releases
+├── lib/                     # Dart 源代码
+│   ├── main.dart            # 应用入口
+│   ├── models/              # 数据模型
+│   ├── pages/               # 页面
+│   ├── providers/           # Riverpod 状态管理
+│   └── widgets/             # 可复用组件
+├── tools/                   # 构建工具
+│   ├── build.sh             # 本地构建脚本
+│   ├── release.sh           # 发布脚本（打标签并触发 CI）
+│   ├── server.js            # 演示版 HTTP 服务
+│   └── package.json         # Node.js 配置
+├── dist/                    # 构建输出目录
+└── pubspec.yaml             # Flutter 项目配置
 ```
 
 ## 技术栈
@@ -118,6 +142,24 @@ wms/
 | [intl](https://pub.dev/packages/intl) | 国际化/本地化 |
 
 ## 常见问题
+
+### 发布新版本
+
+项目采用 GitHub Actions 自动构建并发布到 GitHub Releases：
+
+```bash
+# 1. 确保代码已提交，工作区干净
+
+# 2. 运行发布脚本（自动读取 pubspec.yaml 中的版本号）
+bash tools/release.sh
+
+# 3. 或者手动指定版本
+bash tools/release.sh 1.1.0
+
+# 脚本会自动打标签并推送到 GitHub，随后 Actions 会自动构建并发布
+```
+
+发布后访问 [Releases 页面](https://github.com/Dreay-MoLing/wms/releases) 即可看到构建产物。
 
 ### `flutter pub get` 下载慢
 

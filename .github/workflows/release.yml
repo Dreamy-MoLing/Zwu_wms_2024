@@ -1,0 +1,73 @@
+# WMS 自动发布工作流
+# 推送 v* 标签时触发：构建 Flutter Web + 编译可执行文件 → 发布到 GitHub Releases
+name: Build & Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Build Flutter Web
+        run: flutter build web --release
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Node.js dependencies
+        run: npm ci
+        working-directory: tools
+
+      - name: Build executables (Linux / macOS / Windows)
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          mkdir -p release/linux release/macos release/win
+
+          # Linux
+          npx @yao-pkg/pkg tools/server.js \
+            --target node18-linux-x64 \
+            --output release/linux/wms-demo
+          cp -r build/web release/linux/web
+
+          # macOS
+          npx @yao-pkg/pkg tools/server.js \
+            --target node18-macos-x64 \
+            --output release/macos/wms-demo
+          cp -r build/web release/macos/web
+
+          # Windows
+          npx @yao-pkg/pkg tools/server.js \
+            --target node18-win-x64 \
+            --output release/win/wms-demo.exe
+          cp -r build/web release/win/web
+
+      - name: Package archives
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          cd release
+          tar czf "wms-demo-${VERSION}-linux.tar.gz" linux/
+          tar czf "wms-demo-${VERSION}-macos.tar.gz" macos/
+          zip -r "wms-demo-${VERSION}-win.zip" win/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*.tar.gz, release/*.zip
+          generate_release_notes: true

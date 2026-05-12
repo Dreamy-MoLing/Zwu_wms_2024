@@ -1,16 +1,20 @@
 #!/bin/bash
-# WMS 演示版构建脚本
-# 用法: bash tools/build.sh
+# WMS 本地构建脚本
+# 用法: bash tools/build.sh [版本号]
+# 示例: bash tools/build.sh           # 默认版本 1.0.0
+#       bash tools/build.sh 1.1.0     # 指定版本
 
 set -e
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 TOOLS_DIR="$PROJECT_DIR/tools"
 DIST_DIR="$PROJECT_DIR/dist"
-BUILD_DIR="$DIST_DIR/WMS-Demo-v1.0"
+
+VERSION="${1:-1.0.0}"
+BUILD_DIR="$DIST_DIR/WMS-Demo-v$VERSION"
 
 echo "========================================="
-echo "  WMS Demo 构建脚本"
+echo "  WMS Demo v${VERSION} 构建"
 echo "========================================="
 
 # 1. 构建 Flutter Web
@@ -22,7 +26,7 @@ flutter build web --release
 # 2. 准备发布目录
 echo ""
 echo "[2/3] 准备发布文件..."
-rm -rf "$DIST_DIR"
+rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 cp -r build/web "$BUILD_DIR/web"
 
