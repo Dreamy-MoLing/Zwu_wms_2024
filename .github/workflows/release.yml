@@ -32,7 +32,7 @@ jobs:
           node-version: 18
 
       - name: Install Node.js dependencies
-        run: npm ci
+        run: npm install
         working-directory: tools
 
       - name: Build executables (Linux / macOS / Windows)
