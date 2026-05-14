@@ -112,8 +112,8 @@ class _SidebarState extends State<Sidebar> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('WMS 系统', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                    Text('进销存管理', style: TextStyle(color: Colors.white60, fontSize: 11)),
+                    Text('系统', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text('企业进销存管理', style: TextStyle(color: Colors.white60, fontSize: 11)),
                   ],
                 ),
               ],

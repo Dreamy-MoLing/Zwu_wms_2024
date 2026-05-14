@@ -28,7 +28,7 @@ class WMSApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'WMS 进销存管理系统',
+      title: '企业进销存管理系统',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -58,7 +58,13 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   void initState() {
     super.initState();
     _pages.addAll({
-      '/dashboard': const DashboardPage(),
+      '/dashboard': DashboardPage(
+        onNavigate: (route) {
+          if (_pages.containsKey(route)) {
+            setState(() => _currentRoute = route);
+          }
+        },
+      ),
       '/system/users': const UserManagementPage(),
       '/system/roles': const RoleManagementPage(),
       '/basic/products': const ProductPage(),
@@ -104,9 +110,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     final isLoggedIn = ref.watch(isLoggedInProvider);
 
     if (!isLoggedIn) {
-      return LoginPage(
-        onLoginSuccess: () {},
-      );
+      return LoginPage(onLoginSuccess: () {});
     }
 
     return AppLayout(

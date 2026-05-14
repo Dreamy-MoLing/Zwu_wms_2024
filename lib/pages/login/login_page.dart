@@ -73,7 +73,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           child: const Icon(Icons.inventory_2, color: Colors.white, size: 40),
                         ),
                         const SizedBox(height: 20),
-                        const Text('WMS 进销存管理系统', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                        const Text('企业进销存管理系统', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
                         Text('请登录您的账号', style: TextStyle(color: Colors.grey[500])),
                         const SizedBox(height: 32),

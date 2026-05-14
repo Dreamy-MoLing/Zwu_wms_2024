@@ -24,6 +24,67 @@ class AppLayout extends ConsumerStatefulWidget {
 class _AppLayoutState extends ConsumerState<AppLayout> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  void _showNotifications(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.notifications, size: 22),
+            SizedBox(width: 8),
+            Text('通知'),
+          ],
+        ),
+        content: SizedBox(
+          width: 360,
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              _notificationItem('采购订单 PO-2024-001 已入库', '5 分钟前', Icons.shopping_cart),
+              const Divider(height: 1),
+              _notificationItem('销售单 SO-2024-008 已出库', '30 分钟前', Icons.point_of_sale),
+              const Divider(height: 1),
+              _notificationItem('商品"无线鼠标"库存不足（当前库存：2）', '2 小时前', Icons.inventory),
+              const Divider(height: 1),
+              _notificationItem('库存盘点完成，差异已记录', '昨天', Icons.assignment),
+              const Divider(height: 1),
+              _notificationItem('新客户"深圳科技有限公司"已注册', '昨天', Icons.person_add),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('关闭'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _notificationItem(String text, String time, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: Colors.grey[500]),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(text, style: const TextStyle(fontSize: 14)),
+                const SizedBox(height: 4),
+                Text(time, style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
@@ -72,7 +133,7 @@ class _AppLayoutState extends ConsumerState<AppLayout> {
                       // 通知
                       IconButton(
                         icon: Icon(Icons.notifications_outlined, color: Colors.grey[600]),
-                        onPressed: () {},
+                        onPressed: () => _showNotifications(context),
                       ),
                       const SizedBox(width: 8),
                       // 用户信息
