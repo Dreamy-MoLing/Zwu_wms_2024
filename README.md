@@ -1,8 +1,8 @@
-# WMS - 仓库管理系统（进销存）
+# WMS - 企业进销存管理系统
 
 [![Release](https://img.shields.io/github/v/release/Dreay-MoLing/wms)](https://github.com/Dreay-MoLing/wms/releases/latest)
 
-基于 Flutter Web 的仓库管理（进销存）演示系统，纯前端 Mock 数据，无需后端服务。
+基于 Flutter Web 的 企业进销存 演示系统，纯前端 Mock 数据，无需后端服务。
 
 ## 功能模块
 
