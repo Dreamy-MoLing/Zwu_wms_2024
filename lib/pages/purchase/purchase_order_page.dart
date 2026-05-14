@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/order.dart';
+import '../../models/product.dart';
 import '../../providers/purchase_provider.dart';
 import '../../providers/basic_data_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -13,6 +14,7 @@ class PurchaseOrderPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final orders = ref.watch(purchaseOrderListProvider);
+    final products = ref.watch(productListProvider);
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Padding(
@@ -46,17 +48,7 @@ class PurchaseOrderPage extends ConsumerWidget {
                     DataCell(Text('¥${o.totalAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.w600))),
                     DataCell(_buildStatusChip(o.status)),
                     DataCell(Text(o.handler)),
-                    DataCell(Row(
-                      children: [
-                        if (o.status == '待审核') ...[
-                          TextButton(onPressed: () => ref.read(purchaseOrderListProvider.notifier).updateStatus(o.id, '已通过'), child: const Text('通过', style: TextStyle(fontSize: 12, color: Colors.green))),
-                          TextButton(onPressed: () => ref.read(purchaseOrderListProvider.notifier).updateStatus(o.id, '已取消'), child: const Text('取消', style: TextStyle(fontSize: 12, color: Colors.red))),
-                        ],
-                        if (o.status == '已通过')
-                          TextButton(onPressed: () => ref.read(purchaseOrderListProvider.notifier).updateStatus(o.id, '已完成'), child: const Text('完成', style: TextStyle(fontSize: 12, color: Colors.blue))),
-                        TextButton(onPressed: () => _showDetail(context, o), child: const Text('详情', style: TextStyle(fontSize: 12))),
-                      ],
-                    )),
+                    DataCell(_buildActionButtons(context, ref, o, products)),
                   ])).toList(),
                 ),
               ),
@@ -67,8 +59,41 @@ class PurchaseOrderPage extends ConsumerWidget {
     );
   }
 
+  Widget _buildActionButtons(BuildContext context, WidgetRef ref, PurchaseOrder o, List<Product> products) {
+    final notifier = ref.read(purchaseOrderListProvider.notifier);
+    return Row(
+      children: [
+        if (o.status == '待审核') ...[
+          TextButton(onPressed: () => notifier.updateStatus(o.id, '已通过'), child: const Text('通过', style: TextStyle(fontSize: 12, color: Colors.green))),
+          TextButton(onPressed: () => notifier.updateStatus(o.id, '已取消'), child: const Text('取消', style: TextStyle(fontSize: 12, color: Colors.red))),
+        ],
+        if (o.status == '已通过')
+          TextButton(onPressed: () => notifier.updateStatus(o.id, '已完成'), child: const Text('完成', style: TextStyle(fontSize: 12, color: Colors.blue))),
+        if (o.status == '已完成') ...[
+          TextButton(
+            onPressed: () {
+              for (final item in o.items) {
+                for (var i = 0; i < products.length; i++) {
+                  if (products[i].id == item.productId) {
+                    final updated = products[i].copyWith(stock: products[i].stock + item.quantity);
+                    ref.read(productListProvider.notifier).updateProduct(updated);
+                    break;
+                  }
+                }
+              }
+              notifier.updateStatus(o.id, '已入库');
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('入库完成，库存已更新')));
+            },
+            child: const Text('入库', style: TextStyle(fontSize: 12, color: Colors.teal)),
+          ),
+        ],
+        TextButton(onPressed: () => _showDetail(context, o), child: const Text('详情', style: TextStyle(fontSize: 12))),
+      ],
+    );
+  }
+
   Widget _buildStatusChip(String status) {
-    final colors = {'待审核': Colors.orange, '已通过': Colors.blue, '已完成': Colors.green, '已取消': Colors.red};
+    final colors = {'待审核': Colors.orange, '已通过': Colors.blue, '已完成': Colors.green, '已取消': Colors.red, '已入库': Colors.teal};
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(color: (colors[status] ?? Colors.grey).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),

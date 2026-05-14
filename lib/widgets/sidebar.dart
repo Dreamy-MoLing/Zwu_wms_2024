@@ -24,6 +24,7 @@ final List<MenuItem> menuItems = [
     MenuItem(label: '商品管理', icon: Icons.inventory_2, route: '/basic/products'),
     MenuItem(label: '供应商管理', icon: Icons.business, route: '/basic/suppliers'),
     MenuItem(label: '客户管理', icon: Icons.people, route: '/basic/customers'),
+    MenuItem(label: '仓库管理', icon: Icons.warehouse, route: '/basic/warehouses'),
   ]),
   MenuItem(label: '采购管理', icon: Icons.shopping_cart, children: [
     MenuItem(label: '采购订单', icon: Icons.receipt_long, route: '/purchase/orders'),

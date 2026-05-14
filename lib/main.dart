@@ -8,6 +8,7 @@ import 'pages/system/role_management_page.dart';
 import 'pages/basic_data/product_page.dart';
 import 'pages/basic_data/supplier_page.dart';
 import 'pages/basic_data/customer_page.dart';
+import 'pages/basic_data/warehouse_page.dart';
 import 'pages/purchase/purchase_order_page.dart';
 import 'pages/purchase/purchase_return_page.dart';
 import 'pages/sales/sales_order_page.dart';
@@ -63,6 +64,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       '/basic/products': const ProductPage(),
       '/basic/suppliers': const SupplierPage(),
       '/basic/customers': const CustomerPage(),
+      '/basic/warehouses': const WarehousePage(),
       '/purchase/orders': const PurchaseOrderPage(),
       '/purchase/returns': const PurchaseReturnPage(),
       '/sales/orders': const SalesOrderPage(),
@@ -83,6 +85,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       '/basic/products': '商品管理',
       '/basic/suppliers': '供应商管理',
       '/basic/customers': '客户管理',
+      '/basic/warehouses': '仓库管理',
       '/purchase/orders': '采购订单',
       '/purchase/returns': '采购退货',
       '/sales/orders': '销售订单',

@@ -1,8 +1,20 @@
-# WMS - 仓库管理系统
+# WMS - 仓库管理系统（进销存）
 
 [![Release](https://img.shields.io/github/v/release/Dreay-MoLing/wms)](https://github.com/Dreay-MoLing/wms/releases/latest)
 
-基于 Flutter 的仓库管理移动端应用。
+基于 Flutter Web 的仓库管理（进销存）演示系统，纯前端 Mock 数据，无需后端服务。
+
+## 功能模块
+
+| 模块 | 功能 |
+|------|------|
+| 仪表盘 | 运营概况、统计数据、待处理事项 |
+| 基础数据 | 商品管理（SKU/供应商）、供应商管理、客户管理、仓库管理 |
+| 采购管理 | 采购订单 CRUD + 审核流程 + 入库操作（自动更新库存） |
+| 销售管理 | 销售订单 CRUD + 库存检查 + 审核流程 + 出库操作（自动扣减库存） |
+| 库存管理 | 库存实时查询（低库存预警）、出入库流水记录、库存盘点 |
+| 报表中心 | 销售报表、采购报表、库存报表（含日期筛选） |
+| 系统管理 | 用户管理、角色管理（RBAC） |
 
 ## 小白体验版（无需搭建环境）
 
@@ -46,7 +58,7 @@ Invoke-WebRequest -Uri https://github.com/Dreay-MoLing/wms/releases/latest/downl
 如需从源码构建演示版，确保已安装 Flutter 和 Node.js：
 
 ```bash
-# 构建指定版本（默认 1.0.0）
+# 构建指定版本（默认 1.0.1）
 bash tools/build.sh
 
 # 构建 1.1.0 版本
@@ -119,11 +131,11 @@ wms/
 │   └── workflows/
 │       └── release.yml      # CI/CD: 自动构建并发布到 GitHub Releases
 ├── lib/                     # Dart 源代码
-│   ├── main.dart            # 应用入口
-│   ├── models/              # 数据模型
-│   ├── pages/               # 页面
-│   ├── providers/           # Riverpod 状态管理
-│   └── widgets/             # 可复用组件
+│   ├── main.dart            # 应用入口 + 手动路由
+│   ├── models/              # 数据模型（Product/Order/User/Supplier/Customer/Warehouse）
+│   ├── pages/               # 页面（dashboard/basic_data/purchase/sales/inventory/reports/system）
+│   ├── providers/           # Riverpod 状态管理（auth/basic_data/purchase/system）
+│   └── widgets/             # 可复用组件（AppLayout/Sidebar/DataTableWidget/StatCard）
 ├── tools/                   # 构建工具
 │   ├── build.sh             # 本地构建脚本
 │   ├── release.sh           # 发布脚本（打标签并触发 CI）
@@ -137,9 +149,10 @@ wms/
 
 | 技术 | 用途 |
 |------|------|
-| [Flutter](https://docs.flutter.dev/) | 跨平台 UI 框架 |
-| [Riverpod](https://riverpod.dev/) | 状态管理 |
-| [intl](https://pub.dev/packages/intl) | 国际化/本地化 |
+| [Flutter](https://docs.flutter.dev/) | 跨平台 UI 框架（Web 构建目标） |
+| [Riverpod](https://riverpod.dev/) | 状态管理（StateProvider + StateNotifierProvider） |
+| [intl](https://pub.dev/packages/intl) | 日期格式化 |
+| GitHub Actions | CI/CD 自动构建发布 |
 
 ## 常见问题
 

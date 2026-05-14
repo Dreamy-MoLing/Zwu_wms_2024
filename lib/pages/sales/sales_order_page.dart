@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/order.dart';
+import '../../models/product.dart';
 import '../../providers/purchase_provider.dart';
 import '../../providers/basic_data_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../widgets/data_table_widget.dart';
 import 'package:intl/intl.dart';
 
@@ -12,6 +14,7 @@ class SalesOrderPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final orders = ref.watch(salesOrderListProvider);
+    final products = ref.watch(productListProvider);
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Padding(
@@ -45,17 +48,7 @@ class SalesOrderPage extends ConsumerWidget {
                     DataCell(Text('¥${o.totalAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.w600))),
                     DataCell(_buildStatusChip(o.status)),
                     DataCell(Text(o.handler)),
-                    DataCell(Row(
-                      children: [
-                        if (o.status == '待审核') ...[
-                          TextButton(onPressed: () => ref.read(salesOrderListProvider.notifier).updateStatus(o.id, '已通过'), child: const Text('通过', style: TextStyle(fontSize: 12, color: Colors.green))),
-                          TextButton(onPressed: () => ref.read(salesOrderListProvider.notifier).updateStatus(o.id, '已取消'), child: const Text('取消', style: TextStyle(fontSize: 12, color: Colors.red))),
-                        ],
-                        if (o.status == '已通过')
-                          TextButton(onPressed: () => ref.read(salesOrderListProvider.notifier).updateStatus(o.id, '已完成'), child: const Text('完成', style: TextStyle(fontSize: 12, color: Colors.blue))),
-                        TextButton(onPressed: () => _showDetail(context, o), child: const Text('详情', style: TextStyle(fontSize: 12))),
-                      ],
-                    )),
+                    DataCell(_buildActionButtons(context, ref, o, products)),
                   ])).toList(),
                 ),
               ),
@@ -66,8 +59,56 @@ class SalesOrderPage extends ConsumerWidget {
     );
   }
 
+  Widget _buildActionButtons(BuildContext context, WidgetRef ref, SalesOrder o, List<Product> products) {
+    final notifier = ref.read(salesOrderListProvider.notifier);
+    return Row(
+      children: [
+        if (o.status == '待审核')
+          TextButton(
+            onPressed: () {
+              bool stockEnough = true;
+              for (final item in o.items) {
+                final product = products.firstWhere((p) => p.id == item.productId, orElse: () => products.first);
+                if (product.stock < item.quantity) {
+                  stockEnough = false;
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${product.name} 库存不足（可用: ${product.stock}, 需要: ${item.quantity}）')));
+                  break;
+                }
+              }
+              if (stockEnough) {
+                notifier.updateStatus(o.id, '已通过');
+              }
+            },
+            child: const Text('通过', style: TextStyle(fontSize: 12, color: Colors.green)),
+          ),
+        if (o.status == '待审核')
+          TextButton(onPressed: () => notifier.updateStatus(o.id, '已取消'), child: const Text('取消', style: TextStyle(fontSize: 12, color: Colors.red))),
+        if (o.status == '已通过')
+          TextButton(onPressed: () => notifier.updateStatus(o.id, '已完成'), child: const Text('完成', style: TextStyle(fontSize: 12, color: Colors.blue))),
+        if (o.status == '已完成')
+          TextButton(
+            onPressed: () {
+              for (final item in o.items) {
+                for (var i = 0; i < products.length; i++) {
+                  if (products[i].id == item.productId) {
+                    final updated = products[i].copyWith(stock: (products[i].stock - item.quantity).clamp(0, 999999));
+                    ref.read(productListProvider.notifier).updateProduct(updated);
+                    break;
+                  }
+                }
+              }
+              notifier.updateStatus(o.id, '已出库');
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('出库完成，库存已扣减')));
+            },
+            child: const Text('出库', style: TextStyle(fontSize: 12, color: Colors.teal)),
+          ),
+        TextButton(onPressed: () => _showDetail(context, o), child: const Text('详情', style: TextStyle(fontSize: 12))),
+      ],
+    );
+  }
+
   Widget _buildStatusChip(String status) {
-    final colors = {'待审核': Colors.orange, '已通过': Colors.blue, '已完成': Colors.green, '已取消': Colors.red};
+    final colors = {'待审核': Colors.orange, '已通过': Colors.blue, '已完成': Colors.green, '已取消': Colors.red, '已出库': Colors.teal};
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(color: (colors[status] ?? Colors.grey).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
@@ -213,7 +254,7 @@ class SalesOrderPage extends ConsumerWidget {
                   id: notifier.generateId(),
                   customerName: selectedCustomer,
                   orderDate: DateTime.now(),
-                  handler: '当前用户',
+                  handler: ref.read(currentUserProvider)?.displayName ?? '',
                   items: [OrderItem(
                     productId: product.id, productName: product.name,
                     spec: product.spec, unit: product.unit,

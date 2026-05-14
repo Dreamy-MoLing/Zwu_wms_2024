@@ -22,6 +22,8 @@ class SalesReportPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
+          _DateFilterBar(),
+          const SizedBox(height: 16),
           Row(
             children: [
               _buildSummaryCard('本月销售额', '¥128,450', Icons.trending_up, Colors.green, '+15.3%'),
@@ -155,6 +157,8 @@ class PurchaseReportPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
+          _DateFilterBar(),
+          const SizedBox(height: 16),
           Row(
             children: [
               _buildCard('本月采购额', '¥87,200', Icons.shopping_cart, Colors.blue, '环比 +8.7%'),
@@ -280,6 +284,8 @@ class InventoryReportPage extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 16),
+          _DateFilterBar(),
+          const SizedBox(height: 16),
           Row(
             children: [
               _buildCard('商品种类', '${products.length} 种', Icons.category, Colors.blue),
@@ -400,4 +406,47 @@ List<_CategorySummary> _getCategorySummary(List<Product> products) {
       colors[idx % colors.length],
     );
   }).toList();
+}
+
+class _DateFilterBar extends StatelessWidget {
+  const _DateFilterBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 1))],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.date_range, size: 16, color: Colors.grey[500]),
+          const SizedBox(width: 8),
+          Text('2025-05-01', style: TextStyle(fontSize: 13, color: Colors.grey[700])),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Text('至', style: TextStyle(fontSize: 13, color: Colors.grey)),
+          ),
+          Text('2025-05-14', style: TextStyle(fontSize: 13, color: Colors.grey[700])),
+          const SizedBox(width: 12),
+          SizedBox(
+            height: 32,
+            child: ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                textStyle: const TextStyle(fontSize: 12),
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('查询'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

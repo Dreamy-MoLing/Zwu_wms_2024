@@ -91,6 +91,42 @@ class SalesOrder {
   }
 }
 
+class PurchaseReturn {
+  final String id;
+  final String supplierName;
+  final String reason;
+  final DateTime returnDate;
+  final String status;
+  final double amount;
+
+  PurchaseReturn({
+    required this.id,
+    required this.supplierName,
+    this.reason = '',
+    required this.returnDate,
+    this.status = '待处理',
+    this.amount = 0,
+  });
+}
+
+class SalesReturn {
+  final String id;
+  final String customerName;
+  final String reason;
+  final DateTime returnDate;
+  final String status;
+  final double amount;
+
+  SalesReturn({
+    required this.id,
+    required this.customerName,
+    this.reason = '',
+    required this.returnDate,
+    this.status = '待处理',
+    this.amount = 0,
+  });
+}
+
 final List<String> orderStatusList = ['待审核', '已通过', '已完成', '已取消'];
 
 final List<PurchaseOrder> mockPurchaseOrders = [

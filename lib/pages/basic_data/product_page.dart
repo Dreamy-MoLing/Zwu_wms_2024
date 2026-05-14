@@ -29,10 +29,12 @@ class ProductPage extends ConsumerWidget {
                 child: DataTableWidget(
                   columns: const [
                     DataColumn(label: Text('编号')),
+                    DataColumn(label: Text('SKU')),
                     DataColumn(label: Text('商品名称')),
                     DataColumn(label: Text('分类')),
                     DataColumn(label: Text('规格')),
                     DataColumn(label: Text('单位')),
+                    DataColumn(label: Text('供应商')),
                     DataColumn(label: Text('采购价')),
                     DataColumn(label: Text('销售价')),
                     DataColumn(label: Text('库存')),
@@ -40,10 +42,12 @@ class ProductPage extends ConsumerWidget {
                   ],
                   rows: products.map((p) => DataRow(cells: [
                     DataCell(Text(p.id)),
+                    DataCell(Text(p.sku, style: const TextStyle(fontSize: 12, color: Colors.grey))),
                     DataCell(Text(p.name, style: const TextStyle(fontWeight: FontWeight.w500))),
                     DataCell(_buildCategoryChip(p.category)),
                     DataCell(Text(p.spec)),
                     DataCell(Text(p.unit)),
+                    DataCell(Text(p.supplierName, style: const TextStyle(fontSize: 12))),
                     DataCell(Text('¥${p.purchasePrice.toStringAsFixed(0)}')),
                     DataCell(Text('¥${p.salePrice.toStringAsFixed(0)}')),
                     DataCell(Text('${p.stock}', style: TextStyle(
@@ -101,13 +105,18 @@ class ProductPage extends ConsumerWidget {
 
   void _showProductDialog(BuildContext context, WidgetRef ref, Product? product) {
     final isEdit = product != null;
+    final suppliers = ref.read(supplierListProvider);
     final nameCtrl = TextEditingController(text: product?.name ?? '');
+    final skuCtrl = TextEditingController(text: product?.sku ?? '');
     final specCtrl = TextEditingController(text: product?.spec ?? '');
     final unitCtrl = TextEditingController(text: product?.unit ?? '');
     final purchaseCtrl = TextEditingController(text: product?.purchasePrice.toString() ?? '');
     final saleCtrl = TextEditingController(text: product?.salePrice.toString() ?? '');
     final stockCtrl = TextEditingController(text: product?.stock.toString() ?? '0');
     String selectedCategory = product?.category ?? categoryOptions[0];
+    String selectedSupplier = product?.supplierName.isNotEmpty == true
+        ? product!.supplierName
+        : (suppliers.isNotEmpty ? suppliers.first.name : '');
 
     showDialog(
       context: context,
@@ -120,6 +129,8 @@ class ProductPage extends ConsumerWidget {
               child: Column(mainAxisSize: MainAxisSize.min, children: [
                 TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: '商品名称', border: OutlineInputBorder())),
                 const SizedBox(height: 12),
+                TextField(controller: skuCtrl, decoration: const InputDecoration(labelText: 'SKU', border: OutlineInputBorder(), hintText: '商品编码，如 NB-ThinkPad-X1')),
+                const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   key: ValueKey(selectedCategory),
                   initialValue: selectedCategory,
@@ -131,6 +142,14 @@ class ProductPage extends ConsumerWidget {
                 TextField(controller: specCtrl, decoration: const InputDecoration(labelText: '规格', border: OutlineInputBorder())),
                 const SizedBox(height: 12),
                 TextField(controller: unitCtrl, decoration: const InputDecoration(labelText: '单位', border: OutlineInputBorder())),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  key: ValueKey(selectedSupplier),
+                  initialValue: selectedSupplier,
+                  decoration: const InputDecoration(labelText: '供应商', border: OutlineInputBorder()),
+                  items: suppliers.where((s) => s.enabled).map((s) => DropdownMenuItem(value: s.name, child: Text(s.name))).toList(),
+                  onChanged: (v) => setState(() => selectedSupplier = v!),
+                ),
                 const SizedBox(height: 12),
                 TextField(controller: purchaseCtrl, decoration: const InputDecoration(labelText: '采购价', border: OutlineInputBorder()), keyboardType: TextInputType.number),
                 const SizedBox(height: 12),
@@ -147,6 +166,7 @@ class ProductPage extends ConsumerWidget {
                 final notifier = ref.read(productListProvider.notifier);
                 final p = Product(
                   id: isEdit ? product.id : notifier.generateId(),
+                  sku: skuCtrl.text,
                   name: nameCtrl.text,
                   category: selectedCategory,
                   spec: specCtrl.text,
@@ -154,6 +174,7 @@ class ProductPage extends ConsumerWidget {
                   purchasePrice: double.tryParse(purchaseCtrl.text) ?? 0,
                   salePrice: double.tryParse(saleCtrl.text) ?? 0,
                   stock: int.tryParse(stockCtrl.text) ?? 0,
+                  supplierName: selectedSupplier,
                 );
                 if (isEdit) { notifier.updateProduct(p); } else { notifier.addProduct(p); }
                 Navigator.pop(ctx);

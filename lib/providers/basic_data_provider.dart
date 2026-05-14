@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/product.dart';
 import '../models/supplier_customer.dart';
+import '../models/warehouse.dart';
 
 // 产品
 final productListProvider = StateNotifierProvider<ProductListNotifier, List<Product>>((ref) {
@@ -85,5 +86,35 @@ class CustomerListNotifier extends StateNotifier<List<Customer>> {
   String generateId() {
     final maxId = state.map((e) => int.tryParse(e.id.replaceAll('C', '')) ?? 0).reduce((a, b) => a > b ? a : b);
     return 'C${(maxId + 1).toString().padLeft(3, '0')}';
+  }
+}
+
+// 仓库
+final warehouseListProvider = StateNotifierProvider<WarehouseListNotifier, List<Warehouse>>((ref) {
+  return WarehouseListNotifier();
+});
+
+class WarehouseListNotifier extends StateNotifier<List<Warehouse>> {
+  WarehouseListNotifier() : super([...mockWarehouses]);
+
+  void add(Warehouse w) {
+    state = [...state, w];
+  }
+
+  void update(Warehouse w) {
+    state = state.map((e) => e.id == w.id ? w : e).toList();
+  }
+
+  void delete(String id) {
+    state = state.where((e) => e.id != id).toList();
+  }
+
+  void toggleEnabled(String id) {
+    state = state.map((e) => e.id == id ? e.copyWith(enabled: !e.enabled) : e).toList();
+  }
+
+  String generateId() {
+    final maxId = state.map((e) => int.tryParse(e.id.replaceAll('WH', '')) ?? 0).reduce((a, b) => a > b ? a : b);
+    return 'WH${(maxId + 1).toString().padLeft(3, '0')}';
   }
 }
