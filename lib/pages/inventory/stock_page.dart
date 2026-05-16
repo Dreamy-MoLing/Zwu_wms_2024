@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../providers/basic_data_provider.dart';
 import '../../widgets/data_table_widget.dart';
+import '../../theme/theme.dart';
 
 class StockTransaction {
   final String id;
@@ -46,12 +47,12 @@ class StockPage extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
+            const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('库存查询', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[800])),
-                const SizedBox(height: 4),
-                Text('实时查看各商品库存情况与变动记录', style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+                Text('库存查询', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                SizedBox(height: 4),
+                Text('实时查看各商品库存情况与变动记录', style: TextStyle(fontSize: 13, color: AppColors.textTertiary)),
               ],
             ),
             const SizedBox(height: 16),
@@ -59,7 +60,7 @@ class StockPage extends ConsumerWidget {
               flex: 3,
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.bgPrimary,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 2))],
                 ),
@@ -87,20 +88,20 @@ class StockPage extends ConsumerWidget {
                       DataCell(Text('${p.stock}', style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 15,
-                        color: isLow ? Colors.red : (p.stock > 200 ? Colors.green : Colors.black87),
+                        color: isLow ? AppColors.error : (p.stock > 200 ? AppColors.success : AppColors.textPrimary),
                       ))),
                       DataCell(Text('¥${p.purchasePrice.toStringAsFixed(0)}')),
                       DataCell(Text('¥${totalValue.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.w600))),
                       DataCell(isLow
                           ? Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                              child: const Text('低库存', style: TextStyle(fontSize: 12, color: Colors.red)),
+                              decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+                              child: const Text('低库存', style: TextStyle(fontSize: 12, color: AppColors.error)),
                             )
                           : Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                              child: const Text('正常', style: TextStyle(fontSize: 12, color: Colors.green)),
+                              decoration: BoxDecoration(color: AppColors.success.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+                              child: const Text('正常', style: TextStyle(fontSize: 12, color: AppColors.success)),
                             )),
                     ]);
                   }).toList(),
@@ -113,7 +114,7 @@ class StockPage extends ConsumerWidget {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.bgPrimary,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 2))],
                 ),
@@ -124,7 +125,7 @@ class StockPage extends ConsumerWidget {
                       children: [
                         const Text('近期出入库记录', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                         const Spacer(),
-                        Text('共 ${mockTransactions.length} 条', style: TextStyle(fontSize: 12, color: Colors.grey[400])),
+                        Text('共 ${mockTransactions.length} 条', style: const TextStyle(fontSize: 12, color: AppColors.textDisabled)),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -139,13 +140,13 @@ class StockPage extends ConsumerWidget {
                             dense: true,
                             leading: CircleAvatar(
                               radius: 16,
-                              backgroundColor: (isIn ? Colors.green : Colors.blue).withValues(alpha: 0.1),
-                              child: Icon(isIn ? Icons.download : Icons.upload, color: isIn ? Colors.green : Colors.blue, size: 16),
+                              backgroundColor: (isIn ? AppColors.success : AppColors.info).withValues(alpha: 0.1),
+                              child: Icon(isIn ? Icons.download : Icons.upload, color: isIn ? AppColors.success : AppColors.info, size: 16),
                             ),
                             title: Text('${t.productName} ${t.type}${t.quantity} ${t.remark}',
                               style: const TextStyle(fontSize: 13)),
                             subtitle: Text('${t.handler} · ${DateFormat('MM-dd HH:mm').format(t.date)}',
-                              style: TextStyle(fontSize: 11, color: Colors.grey[400])),
+                              style: const TextStyle(fontSize: 11, color: AppColors.textDisabled)),
                           );
                         },
                       ),

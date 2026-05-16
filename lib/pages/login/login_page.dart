@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/auth_provider.dart';
+import '../../theme/theme.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   final VoidCallback onLoginSuccess;
@@ -75,7 +76,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         const SizedBox(height: 20),
                         const Text('企业进销存管理系统', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
-                        Text('请登录您的账号', style: TextStyle(color: Colors.grey[500])),
+                        const Text('请登录您的账号', style: TextStyle(color: AppColors.textTertiary)),
                         const SizedBox(height: 32),
                         TextFormField(
                           controller: _usernameController,
@@ -100,7 +101,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         ),
                         if (_error != null) ...[
                           const SizedBox(height: 12),
-                          Text(_error!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+                          Text(_error!, style: const TextStyle(color: AppColors.error, fontSize: 13)),
                         ],
                         const SizedBox(height: 24),
                         SizedBox(
@@ -119,7 +120,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        Text('测试账号: admin / 123456', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+                        const Text('测试账号: admin / 123456', style: TextStyle(color: AppColors.textDisabled, fontSize: 12)),
                       ],
                     ),
                   ),

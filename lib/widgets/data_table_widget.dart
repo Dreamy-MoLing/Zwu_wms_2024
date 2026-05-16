@@ -6,6 +6,7 @@ class DataTableWidget extends StatefulWidget {
   final List<DataRow> rows;
   final bool loading;
   final String? emptyMessage;
+  final int rowsPerPage;
 
   const DataTableWidget({
     super.key,
@@ -13,6 +14,7 @@ class DataTableWidget extends StatefulWidget {
     required this.rows,
     this.loading = false,
     this.emptyMessage,
+    this.rowsPerPage = 15,
   });
 
   @override
@@ -20,6 +22,16 @@ class DataTableWidget extends StatefulWidget {
 }
 
 class _DataTableWidgetState extends State<DataTableWidget> {
+  int _page = 0;
+
+  int get _totalPages => (widget.rows.length / widget.rowsPerPage).ceil().clamp(1, 9999);
+
+  List<DataRow> _currentRows() {
+    final start = _page * widget.rowsPerPage;
+    final end = (start + widget.rowsPerPage).clamp(0, widget.rows.length);
+    return widget.rows.sublist(start, end);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.loading) {
@@ -45,7 +57,7 @@ class _DataTableWidgetState extends State<DataTableWidget> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inbox, size: 48, color: AppColors.textTertiary),
+            const Icon(Icons.inbox, size: 48, color: AppColors.textTertiary),
             const SizedBox(height: AppSpacing.lg),
             Text(
               widget.emptyMessage ?? '暂无数据',
@@ -58,36 +70,73 @@ class _DataTableWidgetState extends State<DataTableWidget> {
       );
     }
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Theme(
-        data: Theme.of(context).copyWith(
-          dataTableTheme: DataTableThemeData(
-            headingRowColor: WidgetStateColor.resolveWith(
-              (_) => AppColors.bgTertiary,
+    if (_page >= _totalPages) _page = _totalPages - 1;
+
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Theme(
+              data: Theme.of(context).copyWith(
+                dataTableTheme: DataTableThemeData(
+                  headingRowColor: WidgetStateColor.resolveWith(
+                    (_) => AppColors.bgTertiary,
+                  ),
+                  dataRowColor: WidgetStateColor.resolveWith((_) {
+                    return AppColors.bgPrimary;
+                  }),
+                  headingRowHeight: AppSpacing.heightTableRow,
+                  dataRowMinHeight: AppSpacing.heightTableRow,
+                  dataRowMaxHeight: AppSpacing.heightTableRow,
+                  columnSpacing: AppSpacing.lg,
+                  horizontalMargin: AppSpacing.lg,
+                  headingTextStyle: AppTypography.h6.copyWith(
+                    color: AppColors.textPrimary,
+                  ),
+                  dataTextStyle: AppTypography.bodyMedium,
+                  dividerThickness: AppSpacing.borderNormal,
+                ),
+              ),
+              child: DataTable(
+                columnSpacing: AppSpacing.lg,
+                horizontalMargin: AppSpacing.lg,
+                columns: widget.columns,
+                rows: _currentRows(),
+              ),
             ),
-            dataRowColor: WidgetStateColor.resolveWith((_) {
-              return AppColors.bgPrimary;
-            }),
-            headingRowHeight: AppSpacing.heightTableRow,
-            dataRowMinHeight: AppSpacing.heightTableRow,
-            dataRowMaxHeight: AppSpacing.heightTableRow,
-            columnSpacing: AppSpacing.lg,
-            horizontalMargin: AppSpacing.lg,
-            headingTextStyle: AppTypography.h6.copyWith(
-              color: AppColors.textPrimary,
-            ),
-            dataTextStyle: AppTypography.bodyMedium,
-            dividerThickness: AppSpacing.borderNormal,
           ),
         ),
-        child: DataTable(
-          columnSpacing: AppSpacing.lg,
-          horizontalMargin: AppSpacing.lg,
-          columns: widget.columns,
-          rows: widget.rows,
-        ),
-      ),
+        if (_totalPages > 1)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: const BoxDecoration(
+              border: Border(top: BorderSide(color: AppColors.borderDefault)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Text(
+                  '${_page * widget.rowsPerPage + 1}-${((_page + 1) * widget.rowsPerPage).clamp(0, widget.rows.length)} / 共 ${widget.rows.length} 条',
+                  style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+                ),
+                const SizedBox(width: 16),
+                IconButton(
+                  icon: const Icon(Icons.chevron_left, size: 20),
+                  onPressed: _page > 0 ? () => setState(() => _page--) : null,
+                  visualDensity: VisualDensity.compact,
+                  tooltip: '上一页',
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right, size: 20),
+                  onPressed: _page < _totalPages - 1 ? () => setState(() => _page++) : null,
+                  visualDensity: VisualDensity.compact,
+                  tooltip: '下一页',
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }

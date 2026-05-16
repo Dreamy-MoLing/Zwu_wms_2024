@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../models/order.dart';
 import '../../providers/purchase_provider.dart';
 import '../../providers/basic_data_provider.dart';
+import '../../theme/theme.dart';
 
 class PurchaseReturnPage extends ConsumerWidget {
   const PurchaseReturnPage({super.key});
@@ -23,7 +24,7 @@ class PurchaseReturnPage extends ConsumerWidget {
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.bgPrimary,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 2))],
                 ),
@@ -35,8 +36,8 @@ class PurchaseReturnPage extends ConsumerWidget {
                     final r = returns[i];
                     return ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: Colors.orange.withValues(alpha: 0.1),
-                        child: const Icon(Icons.replay, color: Colors.orange),
+                        backgroundColor: AppColors.warning.withValues(alpha: 0.1),
+                        child: const Icon(Icons.replay, color: AppColors.warning),
                       ),
                       title: Text(r.id, style: const TextStyle(fontWeight: FontWeight.w600)),
                       subtitle: Text('${r.supplierName} · ${r.reason} · ${DateFormat('yyyy-MM-dd').format(r.returnDate)}'),
@@ -47,12 +48,12 @@ class PurchaseReturnPage extends ConsumerWidget {
                           const SizedBox(width: 8),
                           if (r.status == '待处理')
                             TextButton(
-                              onPressed: () => ref.read(purchaseReturnListProvider.notifier).updateStatus(r.id, '已完成'),
-                              child: const Text('处理', style: TextStyle(fontSize: 12, color: Colors.green)),
+                              onPressed: () => ref.read(purchaseReturnListProvider.notifier).updateStatus(r.id, (pr) => pr.copyWith(status: '已完成')),
+                              child: const Text('处理', style: TextStyle(fontSize: 12, color: AppColors.success)),
                             ),
                           TextButton(
                             onPressed: () => ref.read(purchaseReturnListProvider.notifier).delete(r.id),
-                            child: const Text('删除', style: TextStyle(fontSize: 12, color: Colors.red)),
+                            child: const Text('删除', style: TextStyle(fontSize: 12, color: AppColors.error)),
                           ),
                         ],
                       ),
@@ -68,7 +69,7 @@ class PurchaseReturnPage extends ConsumerWidget {
   }
 
   Widget _buildStatusChip(String status) {
-    final color = status == '已完成' ? Colors.green : Colors.orange;
+    final color = status == '已完成' ? AppColors.success : AppColors.warning;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
@@ -80,19 +81,19 @@ class PurchaseReturnPage extends ConsumerWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
+        const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('采购退货', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[800])),
-            const SizedBox(height: 4),
-            Text('管理采购退货流程与记录', style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+            Text('采购退货', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+            SizedBox(height: 4),
+            Text('管理采购退货流程与记录', style: TextStyle(fontSize: 13, color: AppColors.textTertiary)),
           ],
         ),
         ElevatedButton.icon(
           onPressed: () => _showCreateDialog(context, ref),
           icon: const Icon(Icons.add, size: 18),
           label: const Text('新建退货'),
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.info, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
         ),
       ],
     );
@@ -120,8 +121,8 @@ class PurchaseReturnPage extends ConsumerWidget {
                   onChanged: (v) => setState(() => selectedSupplier = v!),
                 ),
                 const SizedBox(height: 12),
-                TextField(
-                  decoration: const InputDecoration(labelText: '退货原因', border: OutlineInputBorder()),
+                const TextField(
+                  decoration: InputDecoration(labelText: '退货原因', border: OutlineInputBorder()),
                 ),
               ],
             ),

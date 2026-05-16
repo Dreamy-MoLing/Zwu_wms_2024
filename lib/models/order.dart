@@ -1,3 +1,5 @@
+import 'interfaces.dart';
+
 class OrderItem {
   final String productId;
   final String productName;
@@ -17,8 +19,8 @@ class OrderItem {
   }) : amount = quantity * price;
 }
 
-class PurchaseOrder {
-  final String id;
+class PurchaseOrder with HasId {
+  @override final String id;
   final String supplierName;
   final DateTime orderDate;
   final List<OrderItem> items;
@@ -54,8 +56,8 @@ class PurchaseOrder {
   }
 }
 
-class SalesOrder {
-  final String id;
+class SalesOrder with HasId {
+  @override final String id;
   final String customerName;
   final DateTime orderDate;
   final List<OrderItem> items;
@@ -91,8 +93,8 @@ class SalesOrder {
   }
 }
 
-class PurchaseReturn {
-  final String id;
+class PurchaseReturn with HasId {
+  @override final String id;
   final String supplierName;
   final String reason;
   final DateTime returnDate;
@@ -107,10 +109,28 @@ class PurchaseReturn {
     this.status = '待处理',
     this.amount = 0,
   });
+
+  PurchaseReturn copyWith({
+    String? id,
+    String? supplierName,
+    String? reason,
+    DateTime? returnDate,
+    String? status,
+    double? amount,
+  }) {
+    return PurchaseReturn(
+      id: id ?? this.id,
+      supplierName: supplierName ?? this.supplierName,
+      reason: reason ?? this.reason,
+      returnDate: returnDate ?? this.returnDate,
+      status: status ?? this.status,
+      amount: amount ?? this.amount,
+    );
+  }
 }
 
-class SalesReturn {
-  final String id;
+class SalesReturn with HasId {
+  @override final String id;
   final String customerName;
   final String reason;
   final DateTime returnDate;
@@ -125,6 +145,24 @@ class SalesReturn {
     this.status = '待处理',
     this.amount = 0,
   });
+
+  SalesReturn copyWith({
+    String? id,
+    String? customerName,
+    String? reason,
+    DateTime? returnDate,
+    String? status,
+    double? amount,
+  }) {
+    return SalesReturn(
+      id: id ?? this.id,
+      customerName: customerName ?? this.customerName,
+      reason: reason ?? this.reason,
+      returnDate: returnDate ?? this.returnDate,
+      status: status ?? this.status,
+      amount: amount ?? this.amount,
+    );
+  }
 }
 
 final List<String> orderStatusList = ['待审核', '已通过', '已完成', '已取消'];

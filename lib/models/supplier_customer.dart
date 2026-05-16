@@ -1,11 +1,13 @@
-class Supplier {
-  final String id;
+import 'interfaces.dart';
+
+class Supplier with HasId, HasEnabled {
+  @override final String id;
   final String name;
   final String contact;
   final String phone;
   final String address;
   final String category;
-  final bool enabled;
+  @override final bool enabled;
 
   Supplier({
     required this.id,
@@ -38,14 +40,14 @@ class Supplier {
   }
 }
 
-class Customer {
-  final String id;
+class Customer with HasId, HasEnabled {
+  @override final String id;
   final String name;
   final String contact;
   final String phone;
   final String address;
   final String level;
-  final bool enabled;
+  @override final bool enabled;
 
   Customer({
     required this.id,

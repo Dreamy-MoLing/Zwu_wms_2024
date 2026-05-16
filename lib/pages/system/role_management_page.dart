@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/theme.dart';
 
 class RoleManagementPage extends StatelessWidget {
   const RoleManagementPage({super.key});
@@ -10,19 +11,19 @@ class RoleManagementPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
+          const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('角色管理', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[800])),
-              const SizedBox(height: 4),
-              Text('管理系统的角色与权限分配', style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+              Text('角色管理', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+              SizedBox(height: 4),
+              Text('管理系统的角色与权限分配', style: TextStyle(fontSize: 13, color: AppColors.textTertiary)),
             ],
           ),
           const SizedBox(height: 16),
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.bgPrimary,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 2))],
               ),
@@ -62,7 +63,7 @@ class RoleManagementPage extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('用户数: ${role.userCount} 人', style: TextStyle(color: Colors.grey[600])),
+              Text('用户数: ${role.userCount} 人', style: const TextStyle(color: AppColors.textSecondary)),
               const SizedBox(height: 16),
               const Text('权限列表:', style: TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
@@ -70,7 +71,7 @@ class RoleManagementPage extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
                   children: [
-                    Icon(Icons.check, color: Colors.green, size: 18),
+                    const Icon(Icons.check, color: Colors.green, size: 18),
                     const SizedBox(width: 8),
                     Text(p),
                   ],

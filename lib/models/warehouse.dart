@@ -1,10 +1,12 @@
-class Warehouse {
-  final String id;
+import 'interfaces.dart';
+
+class Warehouse with HasId, HasEnabled {
+  @override final String id;
   final String name;
   final String contact;
   final String phone;
   final String address;
-  final bool enabled;
+  @override final bool enabled;
 
   Warehouse({
     required this.id,

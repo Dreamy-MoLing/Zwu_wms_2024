@@ -179,9 +179,9 @@ class AppSpacing {
 extension EdgeInsetsExt on EdgeInsets {
   /// 创建按照间距系统的 EdgeInsets
   static EdgeInsets get symmetric8 =>
-      EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm);
+      const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm);
   static EdgeInsets get symmetric16 =>
-      EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md);
+      const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md);
   static EdgeInsets get symmetric24 =>
-      EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.lg);
+      const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.lg);
 }

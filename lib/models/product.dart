@@ -1,5 +1,7 @@
-class Product {
-  final String id;
+import 'interfaces.dart';
+
+class Product with HasId {
+  @override final String id;
   final String sku;
   final String name;
   final String category;

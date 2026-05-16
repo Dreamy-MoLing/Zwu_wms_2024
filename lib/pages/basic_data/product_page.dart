@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../models/product.dart';
 import '../../providers/basic_data_provider.dart';
 import '../../widgets/data_table_widget.dart';
+import '../../widgets/form_dialogs/product_form_dialog.dart';
+import '../../theme/theme.dart';
 
 class ProductPage extends ConsumerWidget {
   const ProductPage({super.key});
@@ -22,7 +23,7 @@ class ProductPage extends ConsumerWidget {
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.bgPrimary,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 2))],
                 ),
@@ -42,7 +43,7 @@ class ProductPage extends ConsumerWidget {
                   ],
                   rows: products.map((p) => DataRow(cells: [
                     DataCell(Text(p.id)),
-                    DataCell(Text(p.sku, style: const TextStyle(fontSize: 12, color: Colors.grey))),
+                    DataCell(Text(p.sku, style: const TextStyle(fontSize: 12, color: AppColors.textTertiary))),
                     DataCell(Text(p.name, style: const TextStyle(fontWeight: FontWeight.w500))),
                     DataCell(_buildCategoryChip(p.category)),
                     DataCell(Text(p.spec)),
@@ -52,12 +53,12 @@ class ProductPage extends ConsumerWidget {
                     DataCell(Text('¥${p.salePrice.toStringAsFixed(0)}')),
                     DataCell(Text('${p.stock}', style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: p.stock < 50 ? Colors.red : Colors.green,
+                      color: p.stock < 50 ? AppColors.error : AppColors.success,
                     ))),
                     DataCell(Row(
                       children: [
-                        TextButton(onPressed: () => _showProductDialog(context, ref, p), child: const Text('编辑', style: TextStyle(fontSize: 12))),
-                        TextButton(onPressed: () => ref.read(productListProvider.notifier).deleteProduct(p.id), child: const Text('删除', style: TextStyle(fontSize: 12, color: Colors.red))),
+                        TextButton(onPressed: () => ProductFormDialog.show(context, product: p), child: const Text('编辑', style: TextStyle(fontSize: 12))),
+                        TextButton(onPressed: () => ref.read(productListProvider.notifier).delete(p.id), child: const Text('删除', style: TextStyle(fontSize: 12, color: AppColors.error))),
                       ],
                     )),
                   ])).toList(),
@@ -74,19 +75,19 @@ class ProductPage extends ConsumerWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
+        const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('商品管理', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[800])),
-            const SizedBox(height: 4),
-            Text('管理商品信息与价格', style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+            Text('商品管理', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+            SizedBox(height: 4),
+            Text('管理商品信息与价格', style: TextStyle(fontSize: 13, color: AppColors.textTertiary)),
           ],
         ),
         ElevatedButton.icon(
-          onPressed: () => _showProductDialog(context, ref, null),
+          onPressed: () => ProductFormDialog.show(context),
           icon: const Icon(Icons.add, size: 18),
           label: const Text('新增商品'),
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.info, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
         ),
       ],
     );
@@ -96,94 +97,11 @@ class ProductPage extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: Colors.blue.withValues(alpha: 0.1),
+        color: AppColors.info.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(category, style: const TextStyle(fontSize: 12, color: Colors.blue)),
+      child: Text(category, style: const TextStyle(fontSize: 12, color: AppColors.info)),
     );
   }
 
-  void _showProductDialog(BuildContext context, WidgetRef ref, Product? product) {
-    final isEdit = product != null;
-    final suppliers = ref.read(supplierListProvider);
-    final nameCtrl = TextEditingController(text: product?.name ?? '');
-    final skuCtrl = TextEditingController(text: product?.sku ?? '');
-    final specCtrl = TextEditingController(text: product?.spec ?? '');
-    final unitCtrl = TextEditingController(text: product?.unit ?? '');
-    final purchaseCtrl = TextEditingController(text: product?.purchasePrice.toString() ?? '');
-    final saleCtrl = TextEditingController(text: product?.salePrice.toString() ?? '');
-    final stockCtrl = TextEditingController(text: product?.stock.toString() ?? '0');
-    String selectedCategory = product?.category ?? categoryOptions[0];
-    String selectedSupplier = product?.supplierName.isNotEmpty == true
-        ? product!.supplierName
-        : (suppliers.isNotEmpty ? suppliers.first.name : '');
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setState) => AlertDialog(
-          title: Text(isEdit ? '编辑商品' : '新增商品'),
-          content: SizedBox(
-            width: 400,
-            child: SingleChildScrollView(
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: '商品名称', border: OutlineInputBorder())),
-                const SizedBox(height: 12),
-                TextField(controller: skuCtrl, decoration: const InputDecoration(labelText: 'SKU', border: OutlineInputBorder(), hintText: '商品编码，如 NB-ThinkPad-X1')),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  key: ValueKey(selectedCategory),
-                  initialValue: selectedCategory,
-                  decoration: const InputDecoration(labelText: '分类', border: OutlineInputBorder()),
-                  items: categoryOptions.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-                  onChanged: (v) => setState(() => selectedCategory = v!),
-                ),
-                const SizedBox(height: 12),
-                TextField(controller: specCtrl, decoration: const InputDecoration(labelText: '规格', border: OutlineInputBorder())),
-                const SizedBox(height: 12),
-                TextField(controller: unitCtrl, decoration: const InputDecoration(labelText: '单位', border: OutlineInputBorder())),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  key: ValueKey(selectedSupplier),
-                  initialValue: selectedSupplier,
-                  decoration: const InputDecoration(labelText: '供应商', border: OutlineInputBorder()),
-                  items: suppliers.where((s) => s.enabled).map((s) => DropdownMenuItem(value: s.name, child: Text(s.name))).toList(),
-                  onChanged: (v) => setState(() => selectedSupplier = v!),
-                ),
-                const SizedBox(height: 12),
-                TextField(controller: purchaseCtrl, decoration: const InputDecoration(labelText: '采购价', border: OutlineInputBorder()), keyboardType: TextInputType.number),
-                const SizedBox(height: 12),
-                TextField(controller: saleCtrl, decoration: const InputDecoration(labelText: '销售价', border: OutlineInputBorder()), keyboardType: TextInputType.number),
-                const SizedBox(height: 12),
-                TextField(controller: stockCtrl, decoration: const InputDecoration(labelText: '库存数量', border: OutlineInputBorder()), keyboardType: TextInputType.number),
-              ]),
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
-            ElevatedButton(
-              onPressed: () {
-                final notifier = ref.read(productListProvider.notifier);
-                final p = Product(
-                  id: isEdit ? product.id : notifier.generateId(),
-                  sku: skuCtrl.text,
-                  name: nameCtrl.text,
-                  category: selectedCategory,
-                  spec: specCtrl.text,
-                  unit: unitCtrl.text,
-                  purchasePrice: double.tryParse(purchaseCtrl.text) ?? 0,
-                  salePrice: double.tryParse(saleCtrl.text) ?? 0,
-                  stock: int.tryParse(stockCtrl.text) ?? 0,
-                  supplierName: selectedSupplier,
-                );
-                if (isEdit) { notifier.updateProduct(p); } else { notifier.addProduct(p); }
-                Navigator.pop(ctx);
-              },
-              child: Text(isEdit ? '保存' : '添加'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

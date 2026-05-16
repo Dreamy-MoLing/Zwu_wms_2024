@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'colors.dart';
-import 'colors.dart';
 
 /// 企业进销存管理系统 - 排版系统
 /// 基于 8px 基础单位，规范化字体层级和权重
@@ -148,7 +147,7 @@ class AppTypography {
 
   // ============ 文本主题生成 ============
   static TextTheme buildTextTheme() {
-    return TextTheme(
+    return const TextTheme(
       displayLarge: h1,
       displayMedium: h2,
       displaySmall: h3,

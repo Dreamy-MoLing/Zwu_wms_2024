@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../models/warehouse.dart';
 import '../../providers/basic_data_provider.dart';
 import '../../widgets/data_table_widget.dart';
+import '../../widgets/form_dialogs/warehouse_form_dialog.dart';
+import '../../theme/theme.dart';
 
 class WarehousePage extends ConsumerWidget {
   const WarehousePage({super.key});
@@ -22,7 +23,7 @@ class WarehousePage extends ConsumerWidget {
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.bgPrimary,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 2))],
                 ),
@@ -44,13 +45,13 @@ class WarehousePage extends ConsumerWidget {
                     DataCell(SizedBox(width: 150, child: Text(w.address, overflow: TextOverflow.ellipsis))),
                     DataCell(Switch(
                       value: w.enabled,
-                      onChanged: (_) => ref.read(warehouseListProvider.notifier).toggleEnabled(w.id),
+                      onChanged: (_) => ref.read(warehouseListProvider.notifier).toggleEnabled(w.id, (e) => e.copyWith(enabled: !e.enabled)),
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     )),
                     DataCell(Row(
                       children: [
-                        TextButton(onPressed: () => _showDialog(context, ref, w), child: const Text('编辑', style: TextStyle(fontSize: 12))),
-                        TextButton(onPressed: () => ref.read(warehouseListProvider.notifier).delete(w.id), child: const Text('删除', style: TextStyle(fontSize: 12, color: Colors.red))),
+                        TextButton(onPressed: () => WarehouseFormDialog.show(context, warehouse: w), child: const Text('编辑', style: TextStyle(fontSize: 12))),
+                        TextButton(onPressed: () => ref.read(warehouseListProvider.notifier).delete(w.id), child: const Text('删除', style: TextStyle(fontSize: 12, color: AppColors.error))),
                       ],
                     )),
                   ])).toList(),
@@ -67,66 +68,22 @@ class WarehousePage extends ConsumerWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
+        const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('仓库管理', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[800])),
-            const SizedBox(height: 4),
-            Text('管理仓库信息与库位', style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+            Text('仓库管理', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+            SizedBox(height: 4),
+            Text('管理仓库信息与库位', style: TextStyle(fontSize: 13, color: AppColors.textTertiary)),
           ],
         ),
         ElevatedButton.icon(
-          onPressed: () => _showDialog(context, ref, null),
+          onPressed: () => WarehouseFormDialog.show(context),
           icon: const Icon(Icons.add, size: 18),
           label: const Text('新增仓库'),
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.info, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
         ),
       ],
     );
   }
 
-  void _showDialog(BuildContext context, WidgetRef ref, Warehouse? warehouse) {
-    final isEdit = warehouse != null;
-    final nameCtrl = TextEditingController(text: warehouse?.name ?? '');
-    final contactCtrl = TextEditingController(text: warehouse?.contact ?? '');
-    final phoneCtrl = TextEditingController(text: warehouse?.phone ?? '');
-    final addressCtrl = TextEditingController(text: warehouse?.address ?? '');
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(isEdit ? '编辑仓库' : '新增仓库'),
-        content: SizedBox(
-          width: 400,
-          child: SingleChildScrollView(
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: '仓库名称', border: OutlineInputBorder())),
-              const SizedBox(height: 12),
-              TextField(controller: contactCtrl, decoration: const InputDecoration(labelText: '联系人', border: OutlineInputBorder())),
-              const SizedBox(height: 12),
-              TextField(controller: phoneCtrl, decoration: const InputDecoration(labelText: '电话', border: OutlineInputBorder())),
-              const SizedBox(height: 12),
-              TextField(controller: addressCtrl, decoration: const InputDecoration(labelText: '地址', border: OutlineInputBorder())),
-            ]),
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
-          ElevatedButton(
-            onPressed: () {
-              final notifier = ref.read(warehouseListProvider.notifier);
-              final w = Warehouse(
-                id: isEdit ? warehouse.id : notifier.generateId(),
-                name: nameCtrl.text, contact: contactCtrl.text, phone: phoneCtrl.text,
-                address: addressCtrl.text,
-              );
-              if (isEdit) { notifier.update(w); } else { notifier.add(w); }
-              Navigator.pop(ctx);
-            },
-            child: Text(isEdit ? '保存' : '添加'),
-          ),
-        ],
-      ),
-    );
-  }
 }

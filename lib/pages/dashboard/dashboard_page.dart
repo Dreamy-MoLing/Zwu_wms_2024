@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/stat_card.dart';
+import '../../theme/theme.dart';
 
 class DashboardPage extends StatelessWidget {
   final ValueChanged<String>? onNavigate;
@@ -12,18 +13,18 @@ class DashboardPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             '欢迎使用企业进销存管理系统',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.grey[800],
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 6),
-          Text(
+          const Text(
             '在这里可以查看企业的运营概况',
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+            style: TextStyle(fontSize: 14, color: AppColors.textTertiary),
           ),
           const SizedBox(height: 24),
           // 统计卡片
@@ -37,7 +38,7 @@ class DashboardPage extends StatelessWidget {
                   title: '今日销售额',
                   value: '¥ 45,890',
                   icon: Icons.trending_up,
-                  color: Colors.green,
+                  color: AppColors.success,
                   subtitle: '较昨日 +12.5%',
                   onTap: () => onNavigate?.call('/reports/sales'),
                 ),
@@ -48,7 +49,7 @@ class DashboardPage extends StatelessWidget {
                   title: '采购订单数',
                   value: '156',
                   icon: Icons.shopping_cart,
-                  color: Colors.blue,
+                  color: AppColors.info,
                   subtitle: '本月新增 23 笔',
                   onTap: () => onNavigate?.call('/purchase/orders'),
                 ),
@@ -59,7 +60,7 @@ class DashboardPage extends StatelessWidget {
                   title: '库存商品数',
                   value: '1,280',
                   icon: Icons.inventory,
-                  color: Colors.orange,
+                  color: AppColors.warning,
                   subtitle: '低库存预警 8 种',
                   onTap: () => onNavigate?.call('/inventory/stock'),
                 ),
@@ -100,9 +101,9 @@ class DashboardPage extends StatelessWidget {
                           ),
                           trailing: Text(
                             a.time,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 12,
-                              color: Colors.grey[400],
+                              color: AppColors.textDisabled,
                             ),
                           ),
                         );
@@ -131,7 +132,7 @@ class DashboardPage extends StatelessWidget {
                             '${p.count}',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Colors.red,
+                              color: AppColors.error,
                             ),
                           ),
                         );
@@ -151,7 +152,7 @@ class DashboardPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.bgPrimary,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -193,31 +194,31 @@ final List<_Activity> _recentActivities = [
     text: '采购订单 PO2025003 已通过审核',
     time: '10分钟前',
     icon: Icons.check_circle,
-    color: Colors.green,
+    color: AppColors.success,
   ),
   _Activity(
     text: '销售订单 SO2025005 已创建',
     time: '30分钟前',
     icon: Icons.add_circle,
-    color: Colors.blue,
+    color: AppColors.info,
   ),
   _Activity(
     text: '商品 "笔记本电脑" 库存不足预警',
     time: '1小时前',
     icon: Icons.warning,
-    color: Colors.orange,
+    color: AppColors.warning,
   ),
   _Activity(
     text: '供应商 "深圳华强电子" 资料已更新',
     time: '2小时前',
     icon: Icons.edit,
-    color: Colors.blueGrey,
+    color: AppColors.textSecondary,
   ),
   _Activity(
     text: '库存盘点完成 - 办公用品品类',
     time: '3小时前',
     icon: Icons.assignment_turned_in,
-    color: Colors.teal,
+    color: AppColors.completed,
   ),
   _Activity(
     text: '新客户 "武汉采购中心" 注册成功',
@@ -244,31 +245,31 @@ final List<_PendingItem> _pendingItems = [
   _PendingItem(
     text: '待审核采购订单',
     icon: Icons.receipt_long,
-    color: Colors.orange,
+    color: AppColors.warning,
     count: 3,
   ),
   _PendingItem(
     text: '待审核销售订单',
     icon: Icons.receipt,
-    color: Colors.orange,
+    color: AppColors.warning,
     count: 2,
   ),
   _PendingItem(
     text: '待处理退货申请',
     icon: Icons.replay,
-    color: Colors.red,
+    color: AppColors.error,
     count: 1,
   ),
   _PendingItem(
     text: '待盘点库存',
     icon: Icons.assignment,
-    color: Colors.blue,
+    color: AppColors.info,
     count: 5,
   ),
   _PendingItem(
     text: '低库存商品预警',
     icon: Icons.inventory,
-    color: Colors.red,
+    color: AppColors.error,
     count: 8,
   ),
 ];

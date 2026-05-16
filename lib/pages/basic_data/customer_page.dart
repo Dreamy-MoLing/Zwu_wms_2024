@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../models/supplier_customer.dart';
 import '../../providers/basic_data_provider.dart';
 import '../../widgets/data_table_widget.dart';
+import '../../widgets/form_dialogs/customer_form_dialog.dart';
+import '../../theme/theme.dart';
 
 class CustomerPage extends ConsumerWidget {
   const CustomerPage({super.key});
@@ -22,7 +23,7 @@ class CustomerPage extends ConsumerWidget {
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.bgPrimary,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 2))],
                 ),
@@ -46,13 +47,13 @@ class CustomerPage extends ConsumerWidget {
                     DataCell(_buildLevelChip(c.level)),
                     DataCell(Switch(
                       value: c.enabled,
-                      onChanged: (_) => ref.read(customerListProvider.notifier).toggleEnabled(c.id),
+                      onChanged: (_) => ref.read(customerListProvider.notifier).toggleEnabled(c.id, (e) => e.copyWith(enabled: !e.enabled)),
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     )),
                     DataCell(Row(
                       children: [
-                        TextButton(onPressed: () => _showDialog(context, ref, c), child: const Text('编辑', style: TextStyle(fontSize: 12))),
-                        TextButton(onPressed: () => ref.read(customerListProvider.notifier).delete(c.id), child: const Text('删除', style: TextStyle(fontSize: 12, color: Colors.red))),
+                        TextButton(onPressed: () => CustomerFormDialog.show(context, customer: c), child: const Text('编辑', style: TextStyle(fontSize: 12))),
+                        TextButton(onPressed: () => ref.read(customerListProvider.notifier).delete(c.id), child: const Text('删除', style: TextStyle(fontSize: 12, color: AppColors.error))),
                       ],
                     )),
                   ])).toList(),
@@ -70,10 +71,10 @@ class CustomerPage extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: (isVip ? Colors.amber : Colors.grey).withValues(alpha: 0.1),
+        color: (isVip ? AppColors.warning : AppColors.textSecondary).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(level, style: TextStyle(fontSize: 12, color: isVip ? Colors.amber[800] : Colors.grey)),
+      child: Text(level, style: TextStyle(fontSize: 12, color: isVip ? AppColors.warning : AppColors.textSecondary)),
     );
   }
 
@@ -81,77 +82,22 @@ class CustomerPage extends ConsumerWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
+        const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('客户管理', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[800])),
-            const SizedBox(height: 4),
-            Text('管理客户信息与等级', style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+            Text('客户管理', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+            SizedBox(height: 4),
+            Text('管理客户信息与等级', style: TextStyle(fontSize: 13, color: AppColors.textTertiary)),
           ],
         ),
         ElevatedButton.icon(
-          onPressed: () => _showDialog(context, ref, null),
+          onPressed: () => CustomerFormDialog.show(context),
           icon: const Icon(Icons.add, size: 18),
           label: const Text('新增客户'),
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.info, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
         ),
       ],
     );
   }
 
-  void _showDialog(BuildContext context, WidgetRef ref, Customer? customer) {
-    final isEdit = customer != null;
-    final nameCtrl = TextEditingController(text: customer?.name ?? '');
-    final contactCtrl = TextEditingController(text: customer?.contact ?? '');
-    final phoneCtrl = TextEditingController(text: customer?.phone ?? '');
-    final addressCtrl = TextEditingController(text: customer?.address ?? '');
-    String selectedLevel = customer?.level ?? '普通';
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setState) => AlertDialog(
-          title: Text(isEdit ? '编辑客户' : '新增客户'),
-          content: SizedBox(
-            width: 400,
-            child: SingleChildScrollView(
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: '客户名称', border: OutlineInputBorder())),
-                const SizedBox(height: 12),
-                TextField(controller: contactCtrl, decoration: const InputDecoration(labelText: '联系人', border: OutlineInputBorder())),
-                const SizedBox(height: 12),
-                TextField(controller: phoneCtrl, decoration: const InputDecoration(labelText: '电话', border: OutlineInputBorder())),
-                const SizedBox(height: 12),
-                TextField(controller: addressCtrl, decoration: const InputDecoration(labelText: '地址', border: OutlineInputBorder())),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  key: ValueKey(selectedLevel),
-                  initialValue: selectedLevel,
-                  decoration: const InputDecoration(labelText: '客户等级', border: OutlineInputBorder()),
-                  items: ['普通', 'VIP'].map((l) => DropdownMenuItem(value: l, child: Text(l))).toList(),
-                  onChanged: (v) => setState(() => selectedLevel = v!),
-                ),
-              ]),
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
-            ElevatedButton(
-              onPressed: () {
-                final notifier = ref.read(customerListProvider.notifier);
-                final c = Customer(
-                  id: isEdit ? customer.id : notifier.generateId(),
-                  name: nameCtrl.text, contact: contactCtrl.text, phone: phoneCtrl.text,
-                  address: addressCtrl.text, level: selectedLevel,
-                );
-                if (isEdit) { notifier.update(c); } else { notifier.add(c); }
-                Navigator.pop(ctx);
-              },
-              child: Text(isEdit ? '保存' : '添加'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

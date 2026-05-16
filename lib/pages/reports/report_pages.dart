@@ -2,35 +2,56 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/product.dart';
 import '../../providers/basic_data_provider.dart';
+import '../../providers/purchase_provider.dart';
+import '../../theme/theme.dart';
 
-class SalesReportPage extends StatelessWidget {
+class SalesReportPage extends ConsumerWidget {
   const SalesReportPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final orders = ref.watch(salesOrderListProvider);
+    final completedOrders = orders.where((o) => o.status == '已完成').toList();
+
+    final monthlySales = completedOrders.fold(0.0, (s, o) => s + o.totalAmount);
+    final orderCount = completedOrders.length;
+    final avgOrderValue = orderCount > 0 ? monthlySales / orderCount : 0;
+
+    final productQty = <String, int>{};
+    final productAmt = <String, double>{};
+    for (final o in completedOrders) {
+      for (final item in o.items) {
+        productQty[item.productName] = (productQty[item.productName] ?? 0) + item.quantity;
+        productAmt[item.productName] = (productAmt[item.productName] ?? 0) + item.amount;
+      }
+    }
+    final top5 = productQty.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final maxQty = top5.isNotEmpty ? top5.first.value : 1;
+
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
+          const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('销售报表', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[800])),
-              const SizedBox(height: 4),
-              Text('查看销售数据分析与统计', style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+              Text('销售报表', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+              SizedBox(height: 4),
+              Text('查看销售数据分析与统计', style: TextStyle(fontSize: 13, color: AppColors.textTertiary)),
             ],
           ),
           const SizedBox(height: 16),
-          _DateFilterBar(),
+          const _DateFilterBar(),
           const SizedBox(height: 16),
           Row(
             children: [
-              _buildSummaryCard('本月销售额', '¥128,450', Icons.trending_up, Colors.green, '+15.3%'),
+              _buildSummaryCard('累计销售额', '¥${_formatAmount(monthlySales)}', Icons.trending_up, AppColors.success, '${completedOrders.length} 笔已完成'),
               const SizedBox(width: 16),
-              _buildSummaryCard('本月订单数', '46 笔', Icons.receipt, Colors.blue, '日均 1.5 笔'),
+              _buildSummaryCard('订单总数', '${orders.length} 笔', Icons.receipt, AppColors.info, '已完成 ${completedOrders.length} 笔'),
               const SizedBox(width: 16),
-              _buildSummaryCard('客单价', '¥2,792', Icons.attach_money, Colors.purple, '环比 +5.2%'),
+              _buildSummaryCard('客单价', '¥${avgOrderValue.toStringAsFixed(0)}', Icons.attach_money, Colors.purple, '${completedOrders.length} 单'),
             ],
           ),
           const SizedBox(height: 24),
@@ -38,7 +59,7 @@ class SalesReportPage extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.bgPrimary,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 2))],
               ),
@@ -47,40 +68,44 @@ class SalesReportPage extends StatelessWidget {
                 children: [
                   const Text('热销商品 Top 5', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 16),
-                  ...List.generate(5, (i) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 24,
-                          child: Text('${i + 1}', style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: i < 3 ? Colors.blue : Colors.grey[500],
-                            fontSize: 16,
-                          )),
-                        ),
-                        SizedBox(
-                          width: 120,
-                          child: Text(_topProducts[i].name, style: const TextStyle(fontWeight: FontWeight.w500)),
-                        ),
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: LinearProgressIndicator(
-                              value: (5 - i) / 5,
-                              backgroundColor: Colors.grey[200],
-                              color: i < 3 ? Colors.blue : Colors.grey,
-                              minHeight: 8,
+                  ...top5.take(5).toList().asMap().entries.map((e) {
+                    final i = e.key;
+                    final entry = e.value;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        children: [
+                          SizedBox(
+                            width: 24,
+                            child: Text('${i + 1}', style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: i < 3 ? AppColors.info : AppColors.textTertiary,
+                              fontSize: 16,
+                            )),
+                          ),
+                          SizedBox(
+                            width: 120,
+                            child: Text(entry.key, style: const TextStyle(fontWeight: FontWeight.w500)),
+                          ),
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: LinearProgressIndicator(
+                                value: maxQty > 0 ? entry.value / maxQty : 0,
+                                backgroundColor: AppColors.bgQuaternary,
+                                color: i < 3 ? AppColors.info : AppColors.textTertiary,
+                                minHeight: 8,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        Text('${_topProducts[i].sales} 件', style: TextStyle(color: Colors.grey[600])),
-                        const SizedBox(width: 16),
-                        Text('¥${_topProducts[i].amount}', style: const TextStyle(fontWeight: FontWeight.w600)),
-                      ],
-                    ),
-                  )),
+                          const SizedBox(width: 16),
+                          Text('${entry.value} 件', style: const TextStyle(color: AppColors.textSecondary)),
+                          const SizedBox(width: 16),
+                          Text('¥${_formatAmount(productAmt[entry.key] ?? 0)}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    );
+                  }),
                 ],
               ),
             ),
@@ -95,7 +120,7 @@ class SalesReportPage extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.bgPrimary,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 2))],
         ),
@@ -110,10 +135,10 @@ class SalesReportPage extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                Text(title, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                 const SizedBox(height: 4),
                 Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                Text(subtitle, style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+                Text(subtitle, style: const TextStyle(color: AppColors.textDisabled, fontSize: 12)),
               ],
             ),
           ],
@@ -123,49 +148,48 @@ class SalesReportPage extends StatelessWidget {
   }
 }
 
-class _TopProduct {
-  final String name;
-  final int sales;
-  final String amount;
-  _TopProduct(this.name, this.sales, this.amount);
-}
-
-final List<_TopProduct> _topProducts = [
-  _TopProduct('笔记本电脑', 28, '195,972'),
-  _TopProduct('无线鼠标', 65, '12,935'),
-  _TopProduct('A4打印纸', 120, '3,360'),
-  _TopProduct('显示器', 18, '39,582'),
-  _TopProduct('办公椅', 22, '12,760'),
-];
-
-class PurchaseReportPage extends StatelessWidget {
+class PurchaseReportPage extends ConsumerWidget {
   const PurchaseReportPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final orders = ref.watch(purchaseOrderListProvider);
+    final suppliers = ref.watch(supplierListProvider);
+
+    final totalOrders = orders.length;
+    final completedOrders = orders.where((o) => o.status == '已完成' || o.status == '已入库').length;
+    final totalPurchase = orders.fold(0.0, (s, o) => s + o.totalAmount);
+
+    final supplierAmount = <String, double>{};
+    for (final o in orders) {
+      supplierAmount[o.supplierName] = (supplierAmount[o.supplierName] ?? 0) + o.totalAmount;
+    }
+    final topSuppliers = supplierAmount.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
+          const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('采购报表', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[800])),
-              const SizedBox(height: 4),
-              Text('查看采购数据分析与统计', style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+              Text('采购报表', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+              SizedBox(height: 4),
+              Text('查看采购数据分析与统计', style: TextStyle(fontSize: 13, color: AppColors.textTertiary)),
             ],
           ),
           const SizedBox(height: 16),
-          _DateFilterBar(),
+          const _DateFilterBar(),
           const SizedBox(height: 16),
           Row(
             children: [
-              _buildCard('本月采购额', '¥87,200', Icons.shopping_cart, Colors.blue, '环比 +8.7%'),
+              _buildCard('累计采购额', '¥${_formatAmount(totalPurchase)}', Icons.shopping_cart, AppColors.info, '${orders.length} 笔订单'),
               const SizedBox(width: 16),
-              _buildCard('本月采购单数', '12 笔', Icons.receipt_long, Colors.orange, '环比 +2 笔'),
+              _buildCard('订单总数', '$totalOrders 笔', Icons.receipt_long, AppColors.warning, '已完成 $completedOrders 笔'),
               const SizedBox(width: 16),
-              _buildCard('供应商总数', '6 家', Icons.business, Colors.teal, '本月新增 1 家'),
+              _buildCard('供应商总数', '${suppliers.length} 家', Icons.business, AppColors.completed, '本月新增 1 家'),
             ],
           ),
           const SizedBox(height: 24),
@@ -173,7 +197,7 @@ class PurchaseReportPage extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.bgPrimary,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 2))],
               ),
@@ -182,16 +206,15 @@ class PurchaseReportPage extends StatelessWidget {
                 children: [
                   const Text('采购统计', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 16),
-                  _dataRow('采购订单总数', '156 笔'),
-                  _dataRow('已完成订单', '142 笔'),
-                  _dataRow('本月采购金额', '¥87,200'),
-                  _dataRow('年度累计采购', '¥523,600'),
+                  _dataRow('采购订单总数', '$totalOrders 笔'),
+                  _dataRow('已完成订单', '$completedOrders 笔'),
+                  _dataRow('累计采购金额', '¥${_formatAmount(totalPurchase)}'),
+                  _dataRow('供应商数量', '${suppliers.length} 家'),
                   const Divider(height: 24),
                   const Text('供应商排名', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 12),
-                  _supplierRow('1', '深圳华强电子有限公司', '¥286,000'),
-                  _supplierRow('2', '广州办公用品批发', '¥95,400'),
-                  _supplierRow('3', '顺德家具厂', '¥78,200'),
+                  ...topSuppliers.take(5).toList().asMap().entries.map((e) =>
+                    _supplierRow('${e.key + 1}', e.value.key, '¥${_formatAmount(e.value.value)}')),
                 ],
               ),
             ),
@@ -206,7 +229,7 @@ class PurchaseReportPage extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.bgPrimary,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 2))],
         ),
@@ -221,10 +244,10 @@ class PurchaseReportPage extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                Text(title, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                 const SizedBox(height: 4),
                 Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                Text(subtitle, style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+                Text(subtitle, style: const TextStyle(color: AppColors.textDisabled, fontSize: 12)),
               ],
             ),
           ],
@@ -239,7 +262,7 @@ class PurchaseReportPage extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: Colors.grey[600])),
+          Text(label, style: const TextStyle(color: AppColors.textSecondary)),
           Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
         ],
       ),
@@ -251,13 +274,20 @@ class PurchaseReportPage extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          SizedBox(width: 24, child: Text(rank, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue))),
+          SizedBox(width: 24, child: Text(rank, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.info))),
           Expanded(child: Text(name)),
           Text(amount, style: const TextStyle(fontWeight: FontWeight.w600)),
         ],
       ),
     );
   }
+}
+
+String _formatAmount(double amount) {
+  if (amount >= 10000) {
+    return '${(amount / 10000).toStringAsFixed(1)}万';
+  }
+  return amount.toStringAsFixed(0);
 }
 
 class InventoryReportPage extends ConsumerWidget {
@@ -275,26 +305,26 @@ class InventoryReportPage extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
+          const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('库存报表', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[800])),
-              const SizedBox(height: 4),
-              Text('查看库存数据分析与统计', style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+              Text('库存报表', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+              SizedBox(height: 4),
+              Text('查看库存数据分析与统计', style: TextStyle(fontSize: 13, color: AppColors.textTertiary)),
             ],
           ),
           const SizedBox(height: 16),
-          _DateFilterBar(),
+          const _DateFilterBar(),
           const SizedBox(height: 16),
           Row(
             children: [
-              _buildCard('商品种类', '${products.length} 种', Icons.category, Colors.blue),
+              _buildCard('商品种类', '${products.length} 种', Icons.category, AppColors.info),
               const SizedBox(width: 16),
-              _buildCard('库存总量', '$totalStock 件', Icons.inventory, Colors.green),
+              _buildCard('库存总量', '$totalStock 件', Icons.inventory, AppColors.success),
               const SizedBox(width: 16),
               _buildCard('库存总额', '¥${totalValue.toStringAsFixed(0)}', Icons.account_balance, Colors.purple),
               const SizedBox(width: 16),
-              _buildCard('低库存预警', '$lowStockCount 种', Icons.warning, Colors.red),
+              _buildCard('低库存预警', '$lowStockCount 种', Icons.warning, AppColors.error),
             ],
           ),
           const SizedBox(height: 24),
@@ -302,7 +332,7 @@ class InventoryReportPage extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.bgPrimary,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 2))],
               ),
@@ -321,13 +351,13 @@ class InventoryReportPage extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(4),
                             child: LinearProgressIndicator(
                               value: c.ratio,
-                              backgroundColor: Colors.grey[200],
+                              backgroundColor: AppColors.bgQuaternary,
                               color: c.color,
                               minHeight: 8,
                             ),
                           ),
                         ),
-                        SizedBox(width: 80, child: Text('${c.count} 件', textAlign: TextAlign.right, style: TextStyle(color: Colors.grey[600]))),
+                        SizedBox(width: 80, child: Text('${c.count} 件', textAlign: TextAlign.right, style: const TextStyle(color: AppColors.textSecondary))),
                         SizedBox(width: 80, child: Text('¥${c.value}', textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.w600))),
                       ],
                     ),
@@ -346,7 +376,7 @@ class InventoryReportPage extends ConsumerWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.bgPrimary,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 2))],
         ),
@@ -361,7 +391,7 @@ class InventoryReportPage extends ConsumerWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                Text(title, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                 const SizedBox(height: 4),
                 Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               ],
@@ -385,7 +415,7 @@ class _CategorySummary {
 List<_CategorySummary> _getCategorySummary(List<Product> products) {
   final categories = <String, int>{};
   final values = <String, double>{};
-  final colors = [Colors.blue, Colors.green, Colors.orange, Colors.purple, Colors.teal, Colors.red, Colors.cyan, Colors.pink];
+  final colors = [AppColors.info, AppColors.success, AppColors.warning, Colors.purple, AppColors.completed, AppColors.error, Colors.cyan, Colors.pink];
   int maxCount = 0;
 
   for (final p in products) {
@@ -416,21 +446,21 @@ class _DateFilterBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.bgPrimary,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 1))],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.date_range, size: 16, color: Colors.grey[500]),
+          const Icon(Icons.date_range, size: 16, color: AppColors.textTertiary),
           const SizedBox(width: 8),
-          Text('2025-05-01', style: TextStyle(fontSize: 13, color: Colors.grey[700])),
+          const Text('2025-05-01', style: TextStyle(fontSize: 13, color: AppColors.textPrimary)),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 8),
-            child: Text('至', style: TextStyle(fontSize: 13, color: Colors.grey)),
+            child: Text('至', style: TextStyle(fontSize: 13, color: AppColors.textTertiary)),
           ),
-          Text('2025-05-14', style: TextStyle(fontSize: 13, color: Colors.grey[700])),
+          const Text('2025-05-14', style: TextStyle(fontSize: 13, color: AppColors.textPrimary)),
           const SizedBox(width: 12),
           SizedBox(
             height: 32,
@@ -439,7 +469,7 @@ class _DateFilterBar extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 textStyle: const TextStyle(fontSize: 12),
-                backgroundColor: Colors.blue,
+                backgroundColor: AppColors.info,
                 foregroundColor: Colors.white,
               ),
               child: const Text('查询'),

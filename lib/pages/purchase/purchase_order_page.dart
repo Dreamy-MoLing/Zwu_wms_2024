@@ -4,8 +4,9 @@ import '../../models/order.dart';
 import '../../models/product.dart';
 import '../../providers/purchase_provider.dart';
 import '../../providers/basic_data_provider.dart';
-import '../../providers/auth_provider.dart';
 import '../../widgets/data_table_widget.dart';
+import '../../widgets/form_dialogs/purchase_order_form_dialog.dart';
+import '../../theme/theme.dart';
 import 'package:intl/intl.dart';
 
 class PurchaseOrderPage extends ConsumerWidget {
@@ -27,7 +28,7 @@ class PurchaseOrderPage extends ConsumerWidget {
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.bgPrimary,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 2))],
                 ),
@@ -64,11 +65,11 @@ class PurchaseOrderPage extends ConsumerWidget {
     return Row(
       children: [
         if (o.status == '待审核') ...[
-          TextButton(onPressed: () => notifier.updateStatus(o.id, '已通过'), child: const Text('通过', style: TextStyle(fontSize: 12, color: Colors.green))),
-          TextButton(onPressed: () => notifier.updateStatus(o.id, '已取消'), child: const Text('取消', style: TextStyle(fontSize: 12, color: Colors.red))),
+          TextButton(onPressed: () => notifier.updateStatus(o.id, (p) => p.copyWith(status: '已通过')), child: const Text('通过', style: TextStyle(fontSize: 12, color: AppColors.success))),
+          TextButton(onPressed: () => notifier.updateStatus(o.id, (p) => p.copyWith(status: '已取消')), child: const Text('取消', style: TextStyle(fontSize: 12, color: AppColors.error))),
         ],
         if (o.status == '已通过')
-          TextButton(onPressed: () => notifier.updateStatus(o.id, '已完成'), child: const Text('完成', style: TextStyle(fontSize: 12, color: Colors.blue))),
+          TextButton(onPressed: () => notifier.updateStatus(o.id, (p) => p.copyWith(status: '已完成')), child: const Text('完成', style: TextStyle(fontSize: 12, color: AppColors.info))),
         if (o.status == '已完成') ...[
           TextButton(
             onPressed: () {
@@ -76,15 +77,15 @@ class PurchaseOrderPage extends ConsumerWidget {
                 for (var i = 0; i < products.length; i++) {
                   if (products[i].id == item.productId) {
                     final updated = products[i].copyWith(stock: products[i].stock + item.quantity);
-                    ref.read(productListProvider.notifier).updateProduct(updated);
+                    ref.read(productListProvider.notifier).update(updated);
                     break;
                   }
                 }
               }
-              notifier.updateStatus(o.id, '已入库');
+              notifier.updateStatus(o.id, (p) => p.copyWith(status: '已入库'));
               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('入库完成，库存已更新')));
             },
-            child: const Text('入库', style: TextStyle(fontSize: 12, color: Colors.teal)),
+            child: const Text('入库', style: TextStyle(fontSize: 12, color: AppColors.completed)),
           ),
         ],
         TextButton(onPressed: () => _showDetail(context, o), child: const Text('详情', style: TextStyle(fontSize: 12))),
@@ -93,7 +94,7 @@ class PurchaseOrderPage extends ConsumerWidget {
   }
 
   Widget _buildStatusChip(String status) {
-    final colors = {'待审核': Colors.orange, '已通过': Colors.blue, '已完成': Colors.green, '已取消': Colors.red, '已入库': Colors.teal};
+    final colors = {'待审核': AppColors.warning, '已通过': AppColors.info, '已完成': AppColors.success, '已取消': AppColors.error, '已入库': AppColors.completed};
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(color: (colors[status] ?? Colors.grey).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
@@ -105,19 +106,19 @@ class PurchaseOrderPage extends ConsumerWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
+        const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('采购订单', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[800])),
-            const SizedBox(height: 4),
-            Text('管理采购订单的创建与审核', style: TextStyle(fontSize: 13, color: Colors.grey[500])),
+            Text('采购订单', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+            SizedBox(height: 4),
+            Text('管理采购订单的创建与审核', style: TextStyle(fontSize: 13, color: AppColors.textTertiary)),
           ],
         ),
         ElevatedButton.icon(
-          onPressed: () => _showCreateDialog(context, ref),
+          onPressed: () => PurchaseOrderFormDialog.show(context),
           icon: const Icon(Icons.add, size: 18),
           label: const Text('新建采购订单'),
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.blue, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.info, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
         ),
       ],
     );
@@ -159,100 +160,11 @@ class PurchaseOrderPage extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          SizedBox(width: 80, child: Text('$label:', style: TextStyle(color: Colors.grey[600]))),
+          SizedBox(width: 80, child: Text('$label:', style: const TextStyle(color: AppColors.textSecondary))),
           Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w500))),
         ],
       ),
     );
   }
 
-  void _showCreateDialog(BuildContext context, WidgetRef ref) {
-    final suppliers = ref.read(supplierListProvider);
-    final products = ref.read(productListProvider);
-    String selectedSupplier = suppliers.first.name;
-    String selectedProduct = products.first.name;
-    int quantity = 1;
-    final priceCtrl = TextEditingController(text: products.first.purchasePrice.toString());
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setState) => AlertDialog(
-          title: const Text('新建采购订单'),
-          content: SizedBox(
-            width: 450,
-            child: SingleChildScrollView(
-              child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-                DropdownButtonFormField<String>(
-                  key: ValueKey(selectedSupplier),
-                  initialValue: selectedSupplier,
-                  decoration: const InputDecoration(labelText: '供应商', border: OutlineInputBorder()),
-                  items: suppliers.where((s) => s.enabled).map((s) => DropdownMenuItem(value: s.name, child: Text(s.name))).toList(),
-                  onChanged: (v) => setState(() => selectedSupplier = v!),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  key: ValueKey(selectedProduct),
-                  initialValue: selectedProduct,
-                  decoration: const InputDecoration(labelText: '商品', border: OutlineInputBorder()),
-                  items: products.map((p) => DropdownMenuItem(value: p.name, child: Text('${p.name} (${p.spec})'))).toList(),
-                  onChanged: (v) {
-                    final p = products.firstWhere((e) => e.name == v);
-                    setState(() {
-                      selectedProduct = v!;
-                      priceCtrl.text = p.purchasePrice.toString();
-                    });
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: priceCtrl,
-                  decoration: const InputDecoration(labelText: '单价', border: OutlineInputBorder()),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Text('数量: '),
-                    IconButton(
-                      icon: const Icon(Icons.remove_circle_outline),
-                      onPressed: quantity > 1 ? () => setState(() => quantity--) : null,
-                    ),
-                    Text('$quantity', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    IconButton(
-                      icon: const Icon(Icons.add_circle_outline),
-                      onPressed: () => setState(() => quantity++),
-                    ),
-                  ],
-                ),
-              ]),
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
-            ElevatedButton(
-              onPressed: () {
-                final product = products.firstWhere((e) => e.name == selectedProduct);
-                final price = double.tryParse(priceCtrl.text) ?? product.purchasePrice;
-                final notifier = ref.read(purchaseOrderListProvider.notifier);
-                notifier.add(PurchaseOrder(
-                  id: notifier.generateId(),
-                  supplierName: selectedSupplier,
-                  orderDate: DateTime.now(),
-                  handler: ref.read(currentUserProvider)?.displayName ?? '',
-                  items: [OrderItem(
-                    productId: product.id, productName: product.name,
-                    spec: product.spec, unit: product.unit,
-                    quantity: quantity, price: price,
-                  )],
-                ));
-                Navigator.pop(ctx);
-              },
-              child: const Text('创建'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

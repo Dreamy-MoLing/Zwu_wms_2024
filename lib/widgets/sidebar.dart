@@ -313,7 +313,7 @@ class _MenuItemButtonState extends State<_MenuItemButton> {
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(AppSpacing.radiusNormal),
             border: widget.isActive
-                ? Border(left: BorderSide(color: Colors.white, width: 3))
+                ? const Border(left: BorderSide(color: Colors.white, width: 3))
                 : null,
           ),
           padding: const EdgeInsets.symmetric(
@@ -397,7 +397,7 @@ class _ChildMenuItemButtonState extends State<_ChildMenuItemButton> {
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(AppSpacing.radiusNormal),
           ),
-          padding: EdgeInsets.only(
+          padding: const EdgeInsets.only(
             left: AppSpacing.lg + AppSpacing.md,
             right: AppSpacing.md,
             top: AppSpacing.md,

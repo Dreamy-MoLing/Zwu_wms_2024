@@ -29,10 +29,10 @@ class _AppLayoutState extends ConsumerState<AppLayout> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Row(
+        title: const Row(
           children: [
             Icon(Icons.notifications, size: 22, color: AppColors.primary),
-            const SizedBox(width: AppSpacing.md),
+            SizedBox(width: AppSpacing.md),
             Text('通知', style: AppTypography.h5),
           ],
         ),
@@ -144,7 +144,7 @@ class _AppLayoutState extends ConsumerState<AppLayout> {
                   height: AppSpacing.heightAppBar,
                   decoration: BoxDecoration(
                     color: AppColors.bgPrimary,
-                    border: Border(
+                    border: const Border(
                       bottom: BorderSide(
                         color: AppColors.borderLight,
                         width: AppSpacing.borderNormal,
@@ -174,13 +174,13 @@ class _AppLayoutState extends ConsumerState<AppLayout> {
                           ),
                         ),
                       // 页面标题
-                      Icon(Icons.dashboard, color: AppColors.primary, size: 20),
+                      const Icon(Icons.dashboard, color: AppColors.primary, size: 20),
                       const SizedBox(width: AppSpacing.md),
                       Text(widget.title, style: AppTypography.h5),
                       const Spacer(),
                       // 通知按钮
                       IconButton(
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.notifications_outlined,
                           color: AppColors.textSecondary,
                         ),
@@ -228,7 +228,7 @@ class _AppLayoutState extends ConsumerState<AppLayout> {
                       const SizedBox(width: AppSpacing.sm),
                       // 登出按钮
                       IconButton(
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.logout,
                           color: AppColors.textSecondary,
                           size: 20,

@@ -1,30 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/order.dart';
+import 'base_list_notifier.dart';
 
 // 采购订单
 final purchaseOrderListProvider = StateNotifierProvider<PurchaseOrderListNotifier, List<PurchaseOrder>>((ref) {
   return PurchaseOrderListNotifier();
 });
 
-class PurchaseOrderListNotifier extends StateNotifier<List<PurchaseOrder>> {
-  PurchaseOrderListNotifier() : super([...mockPurchaseOrders]);
-
-  void add(PurchaseOrder o) {
-    state = [o, ...state];
-  }
-
-  void updateStatus(String id, String status) {
-    state = state.map((o) => o.id == id ? o.copyWith(status: status) : o).toList();
-  }
-
-  void delete(String id) {
-    state = state.where((o) => o.id != id).toList();
-  }
-
-  String generateId() {
-    final count = state.length + 1;
-    return 'PO${DateTime.now().year}${count.toString().padLeft(4, '0')}';
-  }
+class PurchaseOrderListNotifier extends BaseOrderNotifier<PurchaseOrder> {
+  PurchaseOrderListNotifier() : super([...mockPurchaseOrders], idPrefix: 'PO');
 }
 
 // 采购退货
@@ -32,29 +16,8 @@ final purchaseReturnListProvider = StateNotifierProvider<PurchaseReturnListNotif
   return PurchaseReturnListNotifier();
 });
 
-class PurchaseReturnListNotifier extends StateNotifier<List<PurchaseReturn>> {
-  PurchaseReturnListNotifier() : super([...mockPurchaseReturns]);
-
-  void add(PurchaseReturn r) {
-    state = [r, ...state];
-  }
-
-  void updateStatus(String id, String status) {
-    state = state.map((r) => r.id == id ? _copyWithStatus(r, status) : r).toList();
-  }
-
-  void delete(String id) {
-    state = state.where((r) => r.id != id).toList();
-  }
-
-  PurchaseReturn _copyWithStatus(PurchaseReturn r, String status) {
-    return PurchaseReturn(id: r.id, supplierName: r.supplierName, reason: r.reason, returnDate: r.returnDate, status: status, amount: r.amount);
-  }
-
-  String generateId() {
-    final count = state.length + 1;
-    return 'PR${DateTime.now().year}${count.toString().padLeft(4, '0')}';
-  }
+class PurchaseReturnListNotifier extends BaseOrderNotifier<PurchaseReturn> {
+  PurchaseReturnListNotifier() : super([...mockPurchaseReturns], idPrefix: 'PR');
 }
 
 final List<PurchaseReturn> mockPurchaseReturns = [
@@ -67,25 +30,8 @@ final salesOrderListProvider = StateNotifierProvider<SalesOrderListNotifier, Lis
   return SalesOrderListNotifier();
 });
 
-class SalesOrderListNotifier extends StateNotifier<List<SalesOrder>> {
-  SalesOrderListNotifier() : super([...mockSalesOrders]);
-
-  void add(SalesOrder o) {
-    state = [o, ...state];
-  }
-
-  void updateStatus(String id, String status) {
-    state = state.map((o) => o.id == id ? o.copyWith(status: status) : o).toList();
-  }
-
-  void delete(String id) {
-    state = state.where((o) => o.id != id).toList();
-  }
-
-  String generateId() {
-    final count = state.length + 1;
-    return 'SO${DateTime.now().year}${count.toString().padLeft(4, '0')}';
-  }
+class SalesOrderListNotifier extends BaseOrderNotifier<SalesOrder> {
+  SalesOrderListNotifier() : super([...mockSalesOrders], idPrefix: 'SO');
 }
 
 // 销售退货
@@ -93,29 +39,8 @@ final salesReturnListProvider = StateNotifierProvider<SalesReturnListNotifier, L
   return SalesReturnListNotifier();
 });
 
-class SalesReturnListNotifier extends StateNotifier<List<SalesReturn>> {
-  SalesReturnListNotifier() : super([...mockSalesReturns]);
-
-  void add(SalesReturn r) {
-    state = [r, ...state];
-  }
-
-  void updateStatus(String id, String status) {
-    state = state.map((r) => r.id == id ? _copyWithStatus(r, status) : r).toList();
-  }
-
-  void delete(String id) {
-    state = state.where((r) => r.id != id).toList();
-  }
-
-  SalesReturn _copyWithStatus(SalesReturn r, String status) {
-    return SalesReturn(id: r.id, customerName: r.customerName, reason: r.reason, returnDate: r.returnDate, status: status, amount: r.amount);
-  }
-
-  String generateId() {
-    final count = state.length + 1;
-    return 'SR${DateTime.now().year}${count.toString().padLeft(4, '0')}';
-  }
+class SalesReturnListNotifier extends BaseOrderNotifier<SalesReturn> {
+  SalesReturnListNotifier() : super([...mockSalesReturns], idPrefix: 'SR');
 }
 
 final List<SalesReturn> mockSalesReturns = [

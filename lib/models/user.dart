@@ -1,11 +1,13 @@
-class User {
-  final String id;
+import 'interfaces.dart';
+
+class User with HasId, HasEnabled {
+  @override final String id;
   final String username;
   final String displayName;
   final String role;
   final String phone;
   final String email;
-  final bool enabled;
+  @override final bool enabled;
 
   User({
     required this.id,
