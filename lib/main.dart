@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'theme/theme.dart';
 import 'providers/auth_provider.dart';
 import 'pages/login/login_page.dart';
 import 'pages/dashboard/dashboard_page.dart';
@@ -30,13 +31,7 @@ class WMSApp extends StatelessWidget {
     return MaterialApp(
       title: '企业进销存管理系统',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF1e293b),
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-      ),
+      theme: AppThemeData.lightTheme(),
       home: const MainScreen(),
     );
   }
